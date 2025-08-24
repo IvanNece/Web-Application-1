@@ -2,13 +2,27 @@
   "name": "server",
   "version": "0.1.0",
   "description": "",
+  "type": "module",
   "main": "index.mjs",
   "scripts": {
+    "dev": "nodemon index.mjs",
+    "initdb": "node ./scripts/initdb.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-session": "^1.18.2",
+    "express-validator": "^7.2.1",
+    "morgan": "^1.10.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
