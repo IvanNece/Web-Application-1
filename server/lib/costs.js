@@ -1,10 +1,15 @@
+// server/lib/costs.js
+
+// Vocali fisse a 10 (una sola per partita)
 const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 
+// Fasce di costo per consonanti (fondate sulle frequenze STTMedia):
+// Ordine frequenza (alto -> basso): T N H S | R L D C | M W Y F | G P B V | K J X Q Z
 const GROUPS = {
-  5: ['T', 'N', 'S', 'H'],
-  4: ['R', 'D', 'L', 'C'],
-  3: ['M', 'W', 'F', 'G'],
-  2: ['Y', 'P', 'B', 'V'],
+  5: ['T', 'N', 'H', 'S'],
+  4: ['R', 'L', 'D', 'C'],
+  3: ['M', 'W', 'Y', 'F'],
+  2: ['G', 'P', 'B', 'V'],
   1: ['K', 'J', 'X', 'Q', 'Z'],
 };
 
@@ -14,11 +19,11 @@ for (const [cost, letters] of Object.entries(GROUPS)) {
 }
 
 export function isVowel(ch) {
-  return VOWELS.has(ch.toUpperCase());
+  return VOWELS.has(String(ch).toUpperCase());
 }
 
 export function costForLetter(ch) {
-  const up = ch.toUpperCase();
-  if (isVowel(up)) return 10;
-  return COSTS.get(up) ?? 5; // default prudente
+  const up = String(ch).toUpperCase();
+  if (isVowel(up)) return 10;      // vocali
+  return COSTS.get(up) ?? 5;       // default prudente
 }

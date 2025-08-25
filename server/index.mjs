@@ -7,6 +7,7 @@ import './auth/passport.js';
 import sessionsRouter from './api/sessions.js';
 import gamesRouter from './api/games.js';
 import guestRouter from './api/guest.js';
+import metaRouter from './api/meta.js';
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/guest', guestRouter);
+app.use('/api/meta', metaRouter);
 
 // aiuta a non far trapelare stack trace
 app.use((err, req, res, next) => {

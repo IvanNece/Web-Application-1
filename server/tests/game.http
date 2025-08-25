@@ -48,6 +48,14 @@ Content-Type: application/json
 ### ABBANDONA (fine senza penalità)
 POST {{host}}/api/games/{{authGameId}}/abandon
 
+### COSTI LETTERE
+GET {{host}}/api/meta/letter-costs
+
+### LETTERA FREQUENTE (usa sempre l'host, header e riga vuota prima del body)
+POST {{host}}/api/games/{{authGameId}}/guess-letter
+Content-Type: application/json
+
+{ "letter": "t" }
 
 
 
