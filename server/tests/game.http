@@ -1,0 +1,78 @@
+@host = http://localhost:3001
+
+### LOGIN come utente con monete
+POST {{host}}/api/sessions
+Content-Type: application/json
+
+{ "username": "novice", "password": "password" }
+
+### CREA PARTITA (auth)
+# @name createAuthGame
+POST {{host}}/api/games
+
+@authGameId = {{createAuthGame.response.body.$.gameId}}
+
+### STATO PARTITA (auth)
+GET {{host}}/api/games/{{authGameId}}
+
+### LETTERA COLPITA (prova una frequente, es. 'T')
+POST {{host}}/api/games/{{authGameId}}/guess-letter
+Content-Type: application/json
+
+{ "letter": "t" }
+
+### LETTERA DUPLICATA (stessa 'T' → costo 0)
+POST {{host}}/api/games/{{authGameId}}/guess-letter
+Content-Type: application/json
+
+{ "letter": "t" }
+
+### VOCALE (es. 'A'): se già usata blocca, altrimenti costa 10
+POST {{host}}/api/games/{{authGameId}}/guess-letter
+Content-Type: application/json
+
+{ "letter": "a" }
+
+### LETTERA SBAGLIATA (miss) → costo raddoppiato
+POST {{host}}/api/games/{{authGameId}}/guess-letter
+Content-Type: application/json
+
+{ "letter": "z" }
+
+### TENTA FRASE SBAGLIATA (nessuna penalità)
+POST {{host}}/api/games/{{authGameId}}/guess-phrase
+Content-Type: application/json
+
+{ "attempt": "not the sentence" }
+
+### ABBANDONA (fine senza penalità)
+POST {{host}}/api/games/{{authGameId}}/abandon
+
+
+
+
+### --- MODALITÀ GUEST (nessun login) ---
+
+### CREA PARTITA guest
+# @name createGuestGame
+POST {{host}}/api/guest/games
+
+@guestGameId = {{createGuestGame.response.body.$.gameId}}
+
+### STATO guest
+GET {{host}}/api/guest/games/{{guestGameId}}
+
+### LETTERA guest (costo 0, vocali libere)
+POST {{host}}/api/guest/games/{{guestGameId}}/guess-letter
+Content-Type: application/json
+
+{ "letter": "e" }
+
+### FRASE guest (sbagliata → nessuna penalità)
+POST {{host}}/api/guest/games/{{guestGameId}}/guess-phrase
+Content-Type: application/json
+
+{ "attempt": "wrong sentence" }
+
+### ABBANDONA guest
+POST {{host}}/api/guest/games/{{guestGameId}}/abandon

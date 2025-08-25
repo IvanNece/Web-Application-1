@@ -1,6 +1,5 @@
 {
   "watch": ["*.mjs", "api", "auth", "lib"],
   "ext": "mjs,js,json",
-  "ignore": ["node_modules", "db/*.db", "db/*.sqlite"],
-  "exec": "node index.mjs"
+  "ignore": ["node_modules", "db/*.db", "db/*.sqlite"]
 }

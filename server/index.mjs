@@ -5,6 +5,8 @@ import session from 'express-session';
 import passport from 'passport';
 import './auth/passport.js';          
 import sessionsRouter from './api/sessions.js';
+import gamesRouter from './api/games.js';
+import guestRouter from './api/guest.js';
 
 const app = express();
 
@@ -27,7 +29,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     sameSite: 'lax',
-    secure: false // metti true solo se usi HTTPS
+    secure: false, // metti true solo se usi HTTPS
+    httpOnly: true
   }
 }));
 
@@ -42,6 +45,8 @@ app.get('/api/health', (req, res) => {
 
 // 7) Router sessioni (per ora vuoto: lo riempiremo nello step Auth)
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/games', gamesRouter);
+app.use('/api/guest', guestRouter);
 
 // 8) 404 “pulito” in JSON per tutte le API non trovate
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
