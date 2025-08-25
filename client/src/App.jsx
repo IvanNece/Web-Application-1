@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Login from './Login';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import gameIcon from './assets/game-icon.svg';
+import gameIconRight from './assets/game-icon-right.svg';
 import './App.css';
 
 function App() {
@@ -50,20 +50,45 @@ function App() {
   if (isLoggedIn) {
     return (
       <div className="App">
-        <h1>Welcome to the Game, {user.username}!</h1>
-        <button onClick={handleLogout}>Logout</button>
-        {/* Logica per il gioco */}
-        <div>
-          <a href="https://vite.dev" target="_blank">
-            <img src={viteLogo} className="logo" alt="Vite logo" />
-          </a>
-          <a href="https://react.dev" target="_blank">
-            <img src={reactLogo} className="logo react" alt="React logo" />
-          </a>
+        <div className="welcome-message">
+          <div className="title-with-icons">
+            <img src={gameIcon} className="logo game-icon side-left" alt="Puzzle icon" />
+            <h1>🎮 Indovina la Frase</h1>
+            <img src={gameIconRight} className="logo game-icon side-right" alt="Puzzle icon" />
+          </div>
+          <p className="user-info">
+            🌟 Benvenuto, <strong>{user.username}</strong>! 
+            <span style={{marginLeft: '1rem'}}>💰 Monete: <strong>{user.coins}</strong></span>
+          </p>
         </div>
+        
         <div className="card">
-          <button>
-            Start New Game
+          <h2>🚀 Pronto per la sfida?</h2>
+          <p style={{color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem'}}>
+            Indovina la frase segreta prima che scada il tempo!<br/>
+            <small>• Consonanti: 1-5 monete • Vocali: 10 monete • Bonus vittoria: +100 monete</small>
+          </p>
+          
+          {user.coins > 0 ? (
+            <button className="start-game-btn">
+              🎯 Inizia Nuova Partita
+            </button>
+          ) : (
+            <div style={{
+              padding: '1.5rem', 
+              background: 'rgba(239, 68, 68, 0.1)', 
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '12px',
+              color: 'var(--accent-red)',
+              marginBottom: '1rem'
+            }}>
+              <h3>❌ Monete insufficienti!</h3>
+              <p>Hai bisogno di almeno 1 moneta per giocare.</p>
+            </div>
+          )}
+          
+          <button onClick={handleLogout} className="logout-btn">
+            🚪 Logout
           </button>
         </div>
       </div>
@@ -73,7 +98,17 @@ function App() {
   // Se l'utente non è loggato, mostra il form di login
   return (
     <div className="App">
-      <h1>Login to Play</h1>
+      <div className="welcome-message">
+        <div className="title-with-icons">
+          <img src={gameIcon} className="logo game-icon side-left" alt="Puzzle icon" />
+          <h1>🎮 Indovina la Frase</h1>
+          <img src={gameIconRight} className="logo game-icon side-right" alt="Puzzle icon" />
+        </div>
+        <p style={{color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '2rem'}}>
+          Accedi per iniziare la tua avventura!
+        </p>
+      </div>
+      
       <Login setIsLoggedIn={setIsLoggedIn} setUser={setUser} />
     </div>
   );

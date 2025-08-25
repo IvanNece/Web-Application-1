@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Login() {
+function Login({ setIsLoggedIn, setUser }) {
   // Gestione stato per username e password
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,10 +24,10 @@ function Login() {
       const data = await response.json();
       
       if (response.ok) {
-        // Successo nel login, redirigi o mostra il game UI
+        // Successo nel login, aggiorna lo stato dell'app
         console.log('Login successful:', data);
-        // Qui puoi usare React Router per spostarti alla pagina di gioco
-        window.location.href = '/game';  // o usa react-router per la navigazione
+        setUser(data);
+        setIsLoggedIn(true);
       } else {
         // Se la risposta non è ok, mostra l'errore
         setErrorMessage(data.error || 'Login failed');
@@ -39,25 +39,50 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
+      <h2>🔐 Accesso</h2>
+      <p style={{color: 'var(--text-muted)', textAlign: 'center', marginBottom: '2rem'}}>
+        Inserisci le tue credenziali per accedere
+      </p>
+      
       <form onSubmit={handleLogin}>
         <input
           type="text"
-          placeholder="Username"
+          placeholder="👤 Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="🔑 Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit">
+          ✨ Accedi
+        </button>
       </form>
-      {errorMessage && <p className="error">{errorMessage}</p>}
+      
+      {errorMessage && (
+        <div className="error">
+          ⚠️ {errorMessage}
+        </div>
+      )}
+      
+      <div style={{
+        marginTop: '2rem', 
+        padding: '1rem', 
+        background: 'rgba(168, 85, 247, 0.05)',
+        border: '1px solid rgba(168, 85, 247, 0.1)',
+        borderRadius: '8px',
+        fontSize: '0.9rem',
+        color: 'var(--text-muted)'
+      }}>
+        <p><strong>💡 Account di prova:</strong></p>
+        <p>• <code>novice</code> / <code>password</code> (100 monete)</p>
+        <p>• <code>player</code> / <code>password</code> (con partite già giocate)</p>
+      </div>
     </div>
   );
 }

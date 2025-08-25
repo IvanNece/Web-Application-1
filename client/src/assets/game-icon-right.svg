@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="puzzleGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="letterGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+    <filter id="letterGlow2">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle with subtle glow -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#puzzleGradient2)" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Main letter blocks representing hidden phrase (mirrored layout) -->
+  <g filter="url(#letterGlow2)">
+    <!-- Row 1 -->
+    <rect x="22" y="25" width="10" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2.2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="38" y="25" width="14" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.5;0.8" dur="1.8s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="56" y="25" width="8" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.7">
+      <animate attributeName="opacity" values="0.7;0.4;0.7" dur="2.5s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="68" y="25" width="12" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.6;0.9" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    
+    <!-- Row 2 -->
+    <rect x="27" y="45" width="18" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.6;0.9" dur="2.1s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="49" y="45" width="6" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.5">
+      <animate attributeName="opacity" values="0.5;0.8;0.5" dur="2.8s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="59" y="45" width="16" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.4;0.8" dur="1.6s" repeatCount="indefinite"/>
+    </rect>
+    
+    <!-- Row 3 -->
+    <rect x="25" y="65" width="15" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.5;0.8" dur="1.7s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="44" y="65" width="12" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.4s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="60" y="65" width="10" height="15" rx="3" fill="url(#letterGradient2)" opacity="0.7">
+      <animate attributeName="opacity" values="0.7;0.9;0.7" dur="1.9s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  
+  <!-- Central mystery symbol -->
+  <circle cx="50" cy="50" r="8" fill="none" stroke="url(#puzzleGradient2)" stroke-width="2" opacity="0.6"/>
+  <text x="50" y="55" font-family="Inter, sans-serif" font-size="10" font-weight="bold" 
+        text-anchor="middle" fill="url(#puzzleGradient2)" opacity="0.8">!</text>
+  
+  <!-- Decorative dots -->
+  <circle cx="15" cy="15" r="2" fill="url(#puzzleGradient2)" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="85" cy="15" r="2" fill="url(#puzzleGradient2)" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;0.9;0.5" dur="2.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="15" cy="85" r="2" fill="url(#puzzleGradient2)" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="85" cy="85" r="2" fill="url(#puzzleGradient2)" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.8;0.4" dur="3s" repeatCount="indefinite"/>
+  </circle>
+</svg>
