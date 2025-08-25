@@ -1,3 +1,13 @@
+/* Base body styling for dark theme */
+body {
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text */
+  font-family: 'Arial', sans-serif; /* Clean font */
+  margin: 0;
+  padding: 0;
+}
+
+/* Main container */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -5,19 +15,83 @@
   text-align: center;
 }
 
+/* Styling for the logo */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 10px rgba(99, 99, 255, 0.6)); /* Subtle glow for logos */
 }
 
+/* Hover effect for logos */
+.logo:hover {
+  filter: drop-shadow(0 0 15px rgba(99, 99, 255, 0.9));
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 15px rgba(97, 218, 250, 0.9));
+}
+
+/* Card container (form, buttons, etc.) */
+.card {
+  padding: 2em;
+  background-color: #1f1f1f; /* Slightly darker card background */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow */
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+/* Hover effect for the card */
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); /* Darker shadow on hover */
+}
+
+/* Input fields */
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  background-color: #333333; /* Dark input background */
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 200ms ease;
+}
+
+/* Hover effect for input fields */
+input:hover {
+  border-color: #61dafb; /* React blue for hover */
+}
+
+/* Button styling */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #61dafb; /* React blue */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+/* Button hover effect */
+button:hover {
+  background-color: #4fa3d1; /* Slightly darker blue */
+}
+
+/* Error message styling */
+.error {
+  color: #ff4040; /* Red for errors */
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Animations for logos */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -33,10 +107,9 @@
   }
 }
 
-.card {
-  padding: 2em;
-}
-
+/* Footer or any general text styling */
 .read-the-docs {
   color: #888;
+  font-size: 14px;
 }
+
