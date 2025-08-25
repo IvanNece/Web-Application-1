@@ -5,3 +5,34 @@ node_modules/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# --- Node.js standard ---
+**/node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Env/config locali ---
+*.env
+*.env.*
+
+# --- Build output client (Vite) ---
+client/dist/
+client/.vite/
+
+# --- SQLite database files ---
+server/db/*.db
+server/db/*.sqlite
+server/db/*.sqlite3
+
+# --- SQLite temporary/wal/shm journals ---
+server/db/*.db-journal
+server/db/*.sqlite-journal
+server/db/*-shm
+server/db/*-wal
+
+# --- Log / coverage eventuali ---
+logs/
+coverage/
+
+

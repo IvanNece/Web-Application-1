@@ -282,7 +282,8 @@ router.post('/:id/guess-phrase',
           result: 'wrong',
           status: 'running',
           message: 'Not the correct phrase',
-          timeLeft: timeLeft(game.expiresAt)
+          timeLeft: timeLeft(game.expiresAt),
+          coins: await readCoins(req.user.id) 
         });
       }
     } catch (err) { next(err); }

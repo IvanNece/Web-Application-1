@@ -50,3 +50,7 @@ CREATE INDEX idx_phrases_mode ON phrases(mode);
 CREATE INDEX idx_games_userId ON games(userId);
 CREATE INDEX idx_games_phraseId ON games(phraseId);
 CREATE INDEX idx_game_letters_gameId ON game_letters(gameId);
+
+-- Evita duplicati della stessa lettera sullo stesso game
+CREATE UNIQUE INDEX IF NOT EXISTS ux_game_letters_game_letter
+  ON game_letters(gameId, letter);

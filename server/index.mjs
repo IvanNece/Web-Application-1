@@ -24,12 +24,13 @@ app.use(cors({
 
 // 4) Sessione con cookie (requisito: Passport + cookie di sessione)
 app.use(session({
+  name: 'aw1.sid',   // nome del cookie personalizzato
   secret: 'aw1-dev-secret-change-me',
   resave: false,
   saveUninitialized: false,
   cookie: {
     sameSite: 'lax',
-    secure: false, // metti true solo se usi HTTPS
+    secure: false, 
     httpOnly: true
   }
 }));
@@ -47,6 +48,13 @@ app.get('/api/health', (req, res) => {
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/guest', guestRouter);
+
+// aiuta a non far trapelare stack trace
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
 
 // 8) 404 “pulito” in JSON per tutte le API non trovate
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

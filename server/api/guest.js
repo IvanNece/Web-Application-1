@@ -14,14 +14,26 @@ function computeSpacesIndexes(text) {
   return out;
 }
 
+// async function loadGame(gameId) {
+//   return await get(
+//     `SELECT g.*, p.text AS phraseText
+//      FROM games g JOIN phrases p ON g.phraseId = p.id
+//      WHERE g.id = ?`,
+//     [gameId]
+//   );
+// }
+
+//Evita che qualcuno chiami /api/guest/games/:id/... con l’ID di una partita auth.
+//Le rotte guest devono lavorare solo su partite con userId = NULL e phrases.mode = 'guest'.
 async function loadGame(gameId) {
   return await get(
-    `SELECT g.*, p.text AS phraseText
+    `SELECT g.*, p.text AS phraseText, p.mode AS phraseMode
      FROM games g JOIN phrases p ON g.phraseId = p.id
      WHERE g.id = ?`,
     [gameId]
   );
 }
+
 
 /* Crea partita guest */
 router.post('/games', async (req, res, next) => {
@@ -59,6 +71,10 @@ router.get('/games/:id', [param('id').isInt({ min: 1 })], async (req, res, next)
 
     const game = await loadGame(req.params.id);
     if (!game) return res.status(404).json({ error: 'Game not found' });
+
+    if (game.userId !== null || game.phraseMode !== 'guest') {
+      return res.status(403).json({ error: 'Forbidden (not a guest game)' });
+    } 
 
     // timeout (senza penalità)
     if (game.status === 'running' && nowMs() >= game.expiresAt) {
@@ -100,7 +116,12 @@ router.post('/games/:id/guess-letter',
 
       const gameId = Number(req.params.id);
       const game = await loadGame(gameId);
+
       if (!game) return res.status(404).json({ error: 'Game not found' });
+
+      if (game.userId !== null || game.phraseMode !== 'guest') {
+        return res.status(403).json({ error: 'Forbidden (not a guest game)' });
+      } 
 
       if (game.status !== 'running') {
         return res.status(409).json({ error: `Game already ended (${game.status})` });
@@ -150,6 +171,10 @@ router.post('/games/:id/guess-phrase',
       const game = await loadGame(gameId);
       if (!game) return res.status(404).json({ error: 'Game not found' });
 
+      if (game.userId !== null || game.phraseMode !== 'guest') {
+        return res.status(403).json({ error: 'Forbidden (not a guest game)' });
+      } 
+
       if (game.status !== 'running') {
         return res.status(409).json({ error: `Game already ended (${game.status})` });
       }
@@ -180,6 +205,10 @@ router.post('/games/:id/abandon', [param('id').isInt({ min: 1 })], async (req, r
     const gameId = Number(req.params.id);
     const game = await loadGame(gameId);
     if (!game) return res.status(404).json({ error: 'Game not found' });
+
+    if (game.userId !== null || game.phraseMode !== 'guest') {
+      return res.status(403).json({ error: 'Forbidden (not a guest game)' });
+    } 
 
     if (game.status !== 'running') {
       return res.json({ status: game.status, phrase: game.phraseText });
