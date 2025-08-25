@@ -1,0 +1,26 @@
+### LOGIN OK
+POST http://localhost:3001/api/sessions
+Content-Type: application/json
+
+{
+  "username": "novice",
+  "password": "password"
+}
+
+### LOGIN KO (credenziali errate)
+POST http://localhost:3001/api/sessions
+Content-Type: application/json
+
+{
+  "username": "novice",
+  "password": "wrong"
+}
+
+### ME (dopo login OK deve essere 200) 200 = OK 
+GET http://localhost:3001/api/sessions/current
+
+### LOGOUT (invalida la sessione)
+DELETE http://localhost:3001/api/sessions/current
+
+### ME (dopo logout deve essere 401) 401 = Unauthorized
+GET http://localhost:3001/api/sessions/current
