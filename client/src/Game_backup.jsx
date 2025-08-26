@@ -44,7 +44,9 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
     message: '',
     details: '',
     isVisible: false,
-    autoHide: true
+    autoHide: true,
+    isGameEnd: false,
+    isTimeWarning: false
   });
   
   const [animationState, setAnimationState] = useState({
@@ -85,17 +87,19 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
   }, []);
 
   // Gestione feedback messaggi
-  const showFeedback = useCallback((type, message, details = '', autoHide = true) => {
+  const showFeedback = useCallback((type, message, details = '', autoHide = true, isGameEnd = false, isTimeWarning = false) => {
     setFeedbackState({
       type,
       message,
       details,
       isVisible: true,
-      autoHide
+      autoHide,
+      isGameEnd,
+      isTimeWarning
     });
     
-    // Auto-hide dopo 4 secondi se richiesto
-    if (autoHide) {
+    // Auto-hide dopo 4 secondi se richiesto (non per i banner di fine partita)
+    if (autoHide && !isGameEnd) {
       setTimeout(() => {
         setFeedbackState(prev => ({ ...prev, isVisible: false }));
       }, 4000);
@@ -207,13 +211,13 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
       if (data.status === 'running') {
         showFeedback('info', 'Gioco caricato', `Tempo rimanente: ${Math.ceil(data.timeLeft / 1000)}s`);
       } else if (data.status === 'won') {
-        showFeedback('success', 'Partita completata!', 'Hai indovinato la frase', false);
+        showFeedback('success', 'Partita completata!', 'Hai indovinato la frase', false, true);
         triggerGameEndAnimation('won');
       } else if (data.status === 'timeout') {
-        showFeedback('error', 'Tempo scaduto!', `La frase era: "${data.phrase}"`, false);
+        showFeedback('error', 'Tempo scaduto!', `La frase era: "${data.phrase}"`, false, true);
         triggerGameEndAnimation('timeout');
       } else if (data.status === 'abandoned') {
-        showFeedback('warning', 'Partita abbandonata', `La frase era: "${data.phrase}"`, false);
+        showFeedback('warning', 'Partita abbandonata', `La frase era: "${data.phrase}"`, false, true);
         triggerGameEndAnimation('lost');
       }
       
@@ -236,17 +240,17 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
         // Avviso quando il tempo sta per scadere
         if (newTimeLeft <= 10000 && newTimeLeft > 5000 && prev.timeLeft > 10000) {
           showFeedback('warning', '⏰ Tempo in esaurimento!', 
-            'Meno di 10 secondi rimasti. Affretta la decisione!');
+            'Meno di 10 secondi rimasti. Affretta la decisione!', true, false, true);
         }
         
         if (newTimeLeft <= 5000 && newTimeLeft > 0 && prev.timeLeft > 5000) {
           showFeedback('error', '🚨 ULTIMI 5 SECONDI!', 
-            'Il tempo sta per scadere!');
+            'Il tempo sta per scadere!', true, false, true);
         }
         
         if (newTimeLeft === 0) {
           // Il timer è scaduto, ricarichiamo lo stato (il backend gestirà il timeout)
-          showFeedback('error', 'Tempo scaduto!', 'La partita è terminata', false);
+          showFeedback('error', 'Tempo scaduto!', 'La partita è terminata', false, true);
           triggerGameEndAnimation('timeout');
           setTimeout(loadGameState, 100);
         }
@@ -546,7 +550,7 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
         timeLeft: 0
       }));
       
-      showFeedback('warning', 'Partita abbandonata', 'Hai deciso di abbandonare la partita', false);
+      showFeedback('warning', 'Partita abbandonata', 'Hai deciso di abbandonare la partita', false, true);
       triggerGameEndAnimation('lost');
       // Rimuoviamo il timeout automatico - ora l'utente controlla
       
@@ -655,8 +659,8 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
       )}
       
       {/* Sistema di feedback avanzato */}
-      {feedbackState.isVisible && (
-        <div className={`feedback-banner ${feedbackState.type} ${!feedbackState.autoHide ? 'game-end-modal' : ''}`}>
+      {feedbackState.isVisible && !feedbackState.isGameEnd && (
+        <div className={`feedback-banner ${feedbackState.type} ${feedbackState.isTimeWarning ? 'time-warning' : ''}`}>
           <div className="feedback-content">
             <div className="feedback-header">
               <span className="feedback-icon">
@@ -678,58 +682,94 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
             {feedbackState.details && (
               <div className="feedback-details">{feedbackState.details}</div>
             )}
-            
-            {/* Pulsanti per i banner di fine gioco */}
-            {!feedbackState.autoHide && (
-              <div className="game-end-actions" style={{marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center'}}>
-                <button 
-                  style={{
-                    padding: '0.8rem 1.5rem',
-                    backgroundColor: 'transparent',
-                    border: '2px solid currentColor',
-                    borderRadius: '8px',
-                    color: 'inherit',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                  onClick={() => onGameEnd(gameState.status)}
-                  onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-                >
-                  <span>🏠</span>
-                  Torna alla Home
-                </button>
-                
-                <button 
-                  style={{
-                    padding: '0.8rem 1.5rem',
-                    backgroundColor: 'transparent',
-                    border: '2px solid currentColor',
-                    borderRadius: '8px',
-                    color: 'inherit',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                  onClick={() => window.location.reload()}
-                  onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-                >
-                  <span>🎮</span>
-                  Nuova Partita
-                </button>
-              </div>
-            )}
           </div>
+        </div>
+      )}
+
+      {/* Banner di fine gioco separato - VERSION SEMPLIFICATA PER DEBUG */}
+      {feedbackState.isVisible && feedbackState.isGameEnd && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          padding: '2rem',
+          borderRadius: '12px',
+          border: '2px solid #ff6b6b',
+          textAlign: 'center',
+          zIndex: 9999,
+          maxWidth: '400px',
+          width: '90vw',
+          maxHeight: '300px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)'
+        }}>
+          <div style={{fontSize: '3rem', marginBottom: '1rem'}}>
+            {feedbackState.type === 'success' && '🎉'}
+            {feedbackState.type === 'error' && '⏰'}
+            {feedbackState.type === 'warning' && '⚠️'}
+            {feedbackState.type === 'info' && 'ℹ️'}
+          </div>
+          <h2 style={{fontSize: '2rem', marginBottom: '1rem', fontWeight: 'bold'}}>
+            {feedbackState.message}
+          </h2>
+          {feedbackState.details && (
+            <p style={{fontSize: '1.1rem', lineHeight: '1.4', marginBottom: '2rem'}}>
+              {feedbackState.details}
+      {/* Banner di fine gioco separato - VERSION SEMPLIFICATA PER DEBUG */}
+      {feedbackState.isVisible && feedbackState.isGameEnd && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          padding: '2rem',
+          borderRadius: '12px',
+          border: '2px solid #ff6b6b',
+          textAlign: 'center',
+          zIndex: 9999,
+          maxWidth: '400px',
+          width: '90vw',
+          maxHeight: '300px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)'
+        }}>
+          <div style={{fontSize: '3rem', marginBottom: '1rem'}}>
+            {feedbackState.type === 'success' && '🎉'}
+            {feedbackState.type === 'error' && '⏰'}
+            {feedbackState.type === 'warning' && '⚠️'}
+            {feedbackState.type === 'info' && 'ℹ️'}
+          </div>
+          <h2 style={{fontSize: '2rem', marginBottom: '1rem', fontWeight: 'bold'}}>
+            {feedbackState.message}
+          </h2>
+          {feedbackState.details && (
+            <p style={{fontSize: '1.1rem', lineHeight: '1.4', marginBottom: '2rem'}}>
+              {feedbackState.details}
+            </p>
+          )}
+          {!feedbackState.autoHide && (
+            <button 
+              style={{
+                padding: '0.8rem 1.5rem',
+                backgroundColor: 'transparent',
+                border: '2px solid white',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onClick={() => setFeedbackState(prev => ({ ...prev, isVisible: false }))}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              Chiudi
+            </button>
+          )}
         </div>
       )}
       
@@ -784,6 +824,24 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
         )}
         
         {renderPhraseGrid()}
+        
+        {/* Legend */}
+        {gameState.status === 'running' && (
+          <div className="grid-legend">
+            <div className="legend-item">
+              <div className="legend-cell empty"></div>
+              <span>Lettera nascosta</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-cell revealed">A</div>
+              <span>Lettera rivelata</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-cell space"></div>
+              <span>Spazio</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messaggio feedback */}
@@ -976,6 +1034,82 @@ const Game = ({ gameId, onGameEnd, user, setUser }) => {
         </div>
       )}
 
+      {/* Schermata finale - appare sopra tutto quando il gioco è finito */}
+      {isGameEnded && (
+        <div className="game-end-overlay">
+          <div className="game-end-modal">
+            <div className={`game-end-header ${gameState.status}`}>
+              {gameState.status === 'won' && (
+                <>
+                  <div className="end-icon">🏆</div>
+                  <h2>VITTORIA!</h2>
+                  <div className="end-subtitle">Complimenti, hai indovinato la frase!</div>
+                </>
+              )}
+              {gameState.status === 'timeout' && (
+                <>
+                  <div className="end-icon">⏰</div>
+                  <h2>TEMPO SCADUTO</h2>
+                  <div className="end-subtitle">Il tempo è finito prima che riuscissi a indovinare</div>
+                </>
+              )}
+              {gameState.status === 'abandoned' && (
+                <>
+                  <div className="end-icon">🏳️</div>
+                  <h2>GIOCO ABBANDONATO</h2>
+                  <div className="end-subtitle">Hai deciso di abbandonare la partita</div>
+                </>
+              )}
+            </div>
+            
+            <div className="game-end-content">
+              <div className="final-phrase">
+                <h3>La frase era:</h3>
+                <div className="phrase-reveal">"{gameState.phrase}"</div>
+              </div>
+              
+              <div className="game-stats">
+                {gameState.status === 'won' && (
+                  <div className="stat-item success">
+                    <span className="stat-icon">💰</span>
+                    <span className="stat-text">+100 monete bonus!</span>
+                  </div>
+                )}
+                
+                <div className="stat-item">
+                  <span className="stat-icon">🔤</span>
+                  <span className="stat-text">Lettere tentate: {triedLetters.size}</span>
+                </div>
+                
+                <div className="stat-item">
+                  <span className="stat-icon">⏱️</span>
+                  <span className="stat-text">
+                    Tempo: {gameState.status === 'won' ? 'Completato in tempo' : 'Scaduto'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="game-end-actions">
+              <button 
+                className="back-to-home-btn"
+                onClick={() => onGameEnd(gameState.status)}
+              >
+                <span className="btn-icon">🏠</span>
+                Torna alla Home
+              </button>
+              
+              <button 
+                className="new-game-btn"
+                onClick={() => window.location.reload()}
+              >
+                <span className="btn-icon">🎮</span>
+                Nuova Partita
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -10,6 +10,9 @@ const dbPath = path.join(__dirname, '..', 'db', 'aw1.db');
 
 const db = new sqlite3.Database(dbPath);
 
+// Abilita foreign keys
+db.run('PRAGMA foreign_keys = ON');
+
 export function get(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));

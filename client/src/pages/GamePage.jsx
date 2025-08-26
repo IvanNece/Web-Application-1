@@ -54,8 +54,9 @@ function GamePage({ user, setUser }) {
 
   const handleGameEnd = (result) => {
     console.log('Gioco terminato con risultato:', result);
-    // Torna alla home dopo che il gioco è terminato
-    setTimeout(() => navigate('/'), 1000);
+    // L'utente ora controlla quando tornare alla home tramite la schermata di fine gioco
+    // Non facciamo più il redirect automatico
+    navigate('/');
   };
 
   const handleBackToHome = () => {

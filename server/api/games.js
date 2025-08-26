@@ -36,6 +36,24 @@ async function collectRevealedIndexes(gameId, phraseText) {
   return revealed;
 }
 
+// Nuova funzione per raccogliere le lettere rivelate con le loro posizioni (anti-cheat safe)
+async function collectRevealedLetters(gameId, phraseText) {
+  const rows = await all(
+    `SELECT DISTINCT letter FROM game_letters WHERE gameId = ? AND wasHit = 1`,
+    [gameId]
+  );
+  const hits = new Set(rows.map(r => r.letter.toUpperCase()));
+  const revealedMap = {};
+  
+  for (let i = 0; i < phraseText.length; i++) {
+    const ch = phraseText[i];
+    if (ch !== ' ' && hits.has(ch.toUpperCase())) {
+      revealedMap[i] = ch.toUpperCase();
+    }
+  }
+  return revealedMap;
+}
+
 async function loadGameWithPhrase(gameId) {
   return await get(
     `SELECT g.*, p.text AS phraseText
@@ -117,6 +135,9 @@ router.get('/:id',
         phraseLength: game.phraseText.length,
         spaces: computeSpacesIndexes(game.phraseText),
         revealed: await collectRevealedIndexes(game.id, game.phraseText),
+        revealedLetters: game.status === 'running' 
+          ? await collectRevealedLetters(game.id, game.phraseText)
+          : {}, // Solo durante il gioco per anti-cheat
         hasUsedVowel: !!game.hasUsedVowel,
         timeLeft: game.status === 'running' ? timeLeft(game.expiresAt) : 0,
         coins: await readCoins(req.user.id),
@@ -223,6 +244,8 @@ router.post('/:id/guess-letter',
 
       return res.json({
         revealedIndexes,
+        revealed: await collectRevealedIndexes(gameId, game.phraseText),
+        revealedLetters: await collectRevealedLetters(gameId, game.phraseText),
         costApplied: cost,
         coins: coinsNow - cost,
         hasUsedVowel: isVowel(letter) ? true : !!game.hasUsedVowel,
