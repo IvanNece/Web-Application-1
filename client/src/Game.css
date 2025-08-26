@@ -1,0 +1,422 @@
+/* Game.css - Stili per il componente Game autenticato */
+
+.game-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  min-height: 600px;
+}
+
+.game-container.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+/* Header del gioco */
+.game-header {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.timer {
+  background: linear-gradient(
+    135deg,
+    var(--accent-purple) 0%,
+    var(--accent-pink) 100%
+  );
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 10px rgba(139, 69, 19, 0.2);
+}
+
+.coins {
+  background: linear-gradient(
+    135deg,
+    var(--accent-yellow) 0%,
+    var(--accent-orange) 100%
+  );
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 10px rgba(255, 193, 7, 0.2);
+}
+
+.vowel-status {
+  background: var(--accent-cyan);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Sezione frase */
+.phrase-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.phrase-section h3 {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+}
+
+.phrase-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 2rem 0;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color);
+}
+
+.phrase-grid.loading {
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  color: var(--text-secondary);
+}
+
+.phrase-cell {
+  width: 40px;
+  height: 50px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 1.4rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.phrase-cell.space {
+  border: none;
+  background: transparent;
+  width: 20px;
+}
+
+.phrase-cell.revealed {
+  background: linear-gradient(
+    135deg,
+    var(--accent-green) 0%,
+    var(--accent-cyan) 100%
+  );
+  color: white;
+  border-color: var(--accent-green);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Messaggio feedback */
+.message {
+  background: var(--accent-blue);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Controlli del gioco */
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.letter-input-section,
+.phrase-input-section {
+  background: rgba(0, 0, 0, 0.02);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.letter-input-section h4,
+.phrase-input-section h4 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.input-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.letter-input {
+  width: 80px;
+  height: 50px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  transition: border-color 0.3s ease;
+}
+
+.letter-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.phrase-input {
+  flex: 1;
+  min-width: 300px;
+  height: 50px;
+  padding: 0 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  transition: border-color 0.3s ease;
+}
+
+.phrase-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.guess-letter-btn,
+.guess-phrase-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.guess-letter-btn {
+  background: linear-gradient(
+    135deg,
+    var(--accent-purple) 0%,
+    var(--accent-pink) 100%
+  );
+  color: white;
+}
+
+.guess-phrase-btn {
+  background: linear-gradient(
+    135deg,
+    var(--accent-green) 0%,
+    var(--accent-cyan) 100%
+  );
+  color: white;
+}
+
+.guess-letter-btn:hover:not(:disabled),
+.guess-phrase-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.guess-letter-btn:disabled,
+.guess-phrase-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Anteprima costo */
+.cost-preview {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.vowel-warning {
+  color: var(--accent-orange);
+  font-weight: bold;
+}
+
+/* Sezione abbandono */
+.abandon-section {
+  text-align: center;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.abandon-btn {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.abandon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+/* Risultato finale */
+.game-result {
+  background: rgba(0, 0, 0, 0.05);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.game-result h3 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.final-phrase {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-size: 1.1rem;
+  border: 1px solid var(--border-color);
+}
+
+.result-status {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* Lettere tentate */
+.tried-letters {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.tried-letters h4 {
+  margin-bottom: 0.8rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.letters-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tried-letter {
+  background: var(--text-secondary);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+
+  .game-info {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .timer,
+  .coins,
+  .vowel-status {
+    margin: 0;
+  }
+
+  .phrase-grid {
+    gap: 6px;
+    padding: 1rem;
+  }
+
+  .phrase-cell {
+    width: 35px;
+    height: 45px;
+    font-size: 1.2rem;
+  }
+
+  .input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .phrase-input {
+    min-width: auto;
+  }
+
+  .guess-letter-btn,
+  .guess-phrase-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .phrase-cell {
+    width: 30px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .phrase-grid {
+    gap: 4px;
+  }
+}

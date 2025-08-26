@@ -51,6 +51,17 @@ function HomePage({ user }) {
               <div className="no-coins-warning">
                 <p>Non hai abbastanza monete per giocare!</p>
                 <p>Prova la modalità ospite gratuita:</p>
+                {/* Solo se non ha monete, mostra modalità guest */}
+                <button 
+                  className="guest-btn"
+                  onClick={() => navigate('/guest')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-green) 100%)',
+                    marginTop: '1rem'
+                  }}
+                >
+                  🎮 Gioca come Ospite (Gratis)
+                </button>
               </div>
             )}
             
@@ -76,19 +87,19 @@ function HomePage({ user }) {
             <p style={{ margin: '1rem 0', color: 'var(--text-secondary)' }}>
               oppure
             </p>
+            
+            {/* Per utenti non autenticati, mostra sempre modalità guest */}
+            <button 
+              className="guest-btn"
+              onClick={() => navigate('/guest')}
+              style={{ 
+                background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-green) 100%)'
+              }}
+            >
+              🎮 Gioca come Ospite (Gratis)
+            </button>
           </>
         )}
-        
-        {/* Bottone modalità guest - sempre visibile */}
-        <button 
-          className="guest-btn"
-          onClick={() => navigate('/guest')}
-          style={{ 
-            background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-green) 100%)'
-          }}
-        >
-          🎮 Gioca come Ospite (Gratis)
-        </button>
       </div>
     </div>
   );
