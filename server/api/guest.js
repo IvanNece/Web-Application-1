@@ -2,7 +2,24 @@ import { Router } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { get, all, run } from '../lib/db.js';
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// CONFIGURAZIONE E SETUP MODALITÀ GUEST
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+const GUEST_TIMER_MS = 60_000; // Timer partite guest (60 secondi)
 const router = Router();
+
+// Middleware: accesso consentito solo a utenti NON autenticati
+const ensureNotLoggedIn = (req, res, next) => {
+  if (req.user) {
+    return res.status(403).json({ 
+      error: 'Guest mode is only available for non-authenticated users' 
+    });
+  }
+  next();
+};
+
+router.use(ensureNotLoggedIn);
 
 function nowMs() { return Date.now(); }
 function timeLeft(expiresAt) { return Math.max(0, expiresAt - nowMs()); }
@@ -38,13 +55,14 @@ async function loadGame(gameId) {
 /* Crea partita guest */
 router.post('/games', async (req, res, next) => {
   try {
+    // Seleziona frase casuale dalle 3 dedicate agli ospiti
     const phrase = await get(
       "SELECT id, text FROM phrases WHERE mode='guest' ORDER BY RANDOM() LIMIT 1"
     );
     if (!phrase) return res.status(500).json({ error: 'No guest phrase available' });
 
     const startedAt = nowMs();
-    const expiresAt = startedAt + 60_000;
+    const expiresAt = startedAt + GUEST_TIMER_MS;
 
     const ins = await run(
       `INSERT INTO games(userId, phraseId, status, startedAt, expiresAt, hasUsedVowel, coinsSpent, coinsDelta)
@@ -52,18 +70,20 @@ router.post('/games', async (req, res, next) => {
       [phrase.id, startedAt, expiresAt]
     );
 
+    console.log(`\x1b[32m[Guest Game ${ins.lastID}] Frase corretta: "${phrase.text}"\x1b[0m`);
+
     return res.status(201).json({
       gameId: ins.lastID,
       status: 'running',
       phraseLength: phrase.text.length,
       spaces: computeSpacesIndexes(phrase.text),
       revealed: [],
-      timeLeft: 60_000
+      timeLeft: GUEST_TIMER_MS
     });
   } catch (err) { next(err); }
 });
 
-/* Stato partita guest (nessuna autenticazione, versione semplificata) */
+// GET /games/:id - Recupera stato partita guest
 router.get('/games/:id', [param('id').isInt({ min: 1 })], async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -76,7 +96,7 @@ router.get('/games/:id', [param('id').isInt({ min: 1 })], async (req, res, next)
       return res.status(403).json({ error: 'Forbidden (not a guest game)' });
     } 
 
-    // timeout (senza penalità)
+    // Gestione timeout automatico senza penalità monete
     if (game.status === 'running' && nowMs() >= game.expiresAt) {
       await run(`UPDATE games SET status='timeout' WHERE id = ?`, [game.id]);
       const updated = await loadGame(game.id);
@@ -103,7 +123,11 @@ router.get('/games/:id', [param('id').isInt({ min: 1 })], async (req, res, next)
   } catch (err) { next(err); }
 });
 
-/* Indovina lettera guest: COSTO ZERO, nessuna regola "una sola vocale" */
+// ─────────────────────────────────────────────────────────────────────────────────
+// ENDPOINT AZIONI GUEST - VERSIONE SEMPLIFICATA
+// ─────────────────────────────────────────────────────────────────────────────────
+
+// POST /games/:id/guess-letter - Indovina lettera (costo zero, nessun limite vocali)
 router.post('/games/:id/guess-letter',
   [
     param('id').isInt({ min: 1 }),
@@ -112,7 +136,19 @@ router.post('/games/:id/guess-letter',
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) return res.status(400).json({ error: 'Invalid input' });
+      if (!errors.isEmpty()) {
+        // Gestione errori specifici per validazione input
+        if (req.body.letter === undefined || req.body.letter === null) {
+          return res.status(400).json({ error: '🚫 Carattere mancante! Inserisci una lettera valida (A-Z) 📝' });
+        }
+        if (typeof req.body.letter !== 'string' || req.body.letter.length !== 1) {
+          return res.status(400).json({ error: '⚠️ Inserisci solo un carattere alla volta! 📝' });
+        }
+        if (!/^[A-Za-z]$/.test(req.body.letter)) {
+          return res.status(400).json({ error: '🚫 Carattere non valido! Usa solo lettere A-Z 🔤' });
+        }
+        return res.status(400).json({ error: '❌ Input non valido! 🚨' });
+      }
 
       const gameId = Number(req.params.id);
       const game = await loadGame(gameId);

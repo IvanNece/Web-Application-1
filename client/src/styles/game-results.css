@@ -1,0 +1,308 @@
+/**
+ * GAME-RESULTS.CSS - RISULTATI FINE GIOCO E MODALI
+ * 
+ * SCOPO:
+ * Stili per overlay e modali di fine gioco, incluse schermate di
+ * vittoria, timeout e abbandono partita. Utilizzato dal componente
+ * GameResultDisplay.jsx per visualizzazione risultati finali.
+ * 
+ * SEZIONI INCLUSE:
+ * - .game-end-overlay: Overlay fullscreen fine gioco
+ * - .game-end-modal: Modali risultati finali
+ * - .end-icon: Icone animate risultato
+ * - Animazioni modalità fine gioco
+ * 
+ * COMPONENTI REACT ASSOCIATI:
+ * - GameResultDisplay.jsx: Componente principale risultati
+ * - Game.jsx: Container che gestisce fine gioco
+ * - GuestGame.jsx: Container che gestisce fine gioco
+ * 
+ * DIPENDENZE:
+ * Richiede base.css per variabili CSS e animazioni globali.
+ */
+
+/* ===============================
+   OVERLAY FINE GIOCO
+   =============================== */
+
+.game-end-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5000;
+  animation: overlayFadeIn 0.5s ease;
+}
+
+/* ===============================
+   MODAL RISULTATI FINALI
+   =============================== */
+
+.game-end-modal {
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 46, 0.95),
+    rgba(22, 33, 62, 0.95)
+  );
+  border: 2px solid var(--border-accent);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90vw;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: modalSlideIn 0.6s ease;
+}
+
+/* ===============================
+   HEADER RISULTATO
+   =============================== */
+
+.game-end-header {
+  margin-bottom: 2rem;
+}
+
+.game-end-header.won {
+  color: var(--accent-green);
+}
+
+.game-end-header.timeout {
+  color: #ff6b6b;
+}
+
+.game-end-header.abandoned {
+  color: var(--accent-yellow);
+}
+
+.end-icon {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  animation: iconBounce 0.8s ease;
+}
+
+.game-end-header h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.end-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* ===============================
+   STATI GIOCO CONTAINER
+   =============================== */
+
+/* Animazioni fine gioco - DISABILITATE per evitare scatti */
+.game-container.game-end-won {
+  animation: none !important; /* ELIMINATO: gameWon causava illuminazioni */
+}
+
+.game-container.game-end-lost,
+.game-container.game-end-timeout {
+  animation: none !important; /* ELIMINATO: gameLost causava illuminazioni */
+}
+
+/* ===============================
+   ANIMAZIONI LETTERE FEEDBACK
+   =============================== */
+
+.letter-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3000;
+  pointer-events: none;
+}
+
+.letter-animation.hit {
+  animation: letterHit 2s ease;
+}
+
+.letter-animation.miss {
+  animation: letterMiss 2s ease;
+}
+
+.letter-animation-content {
+  text-align: center;
+  color: white;
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.big-letter {
+  font-size: 5rem;
+  font-weight: bold;
+  font-family: "Courier New", monospace;
+  margin-bottom: 0.5rem;
+}
+
+.animation-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.2rem;
+}
+
+/* ===============================
+   ANIMAZIONI MODALI
+   =============================== */
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes iconBounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes gameEndBannerDirectAppear {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes gameEndBannerAppear {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes letterHit {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+    color: var(--accent-green);
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1);
+    color: var(--accent-cyan);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes letterMiss {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+    color: #ff4757;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(-5deg);
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* ===============================
+   ANIMAZIONI DISABILITATE
+   =============================== */
+
+/* Animazioni container disabilitate per evitare conflitti */
+@keyframes gameWon {
+  0% {
+    filter: brightness(1);
+  }
+  20% {
+    filter: brightness(1.5) hue-rotate(60deg);
+  }
+  40% {
+    filter: brightness(1.2) hue-rotate(120deg);
+  }
+  60% {
+    filter: brightness(1.4) hue-rotate(180deg);
+  }
+  80% {
+    filter: brightness(1.1) hue-rotate(240deg);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes gameLost {
+  0% {
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    filter: brightness(0.5) saturate(0.3) sepia(0.3);
+  }
+  100% {
+    filter: brightness(0.8) saturate(0.7);
+  }
+}

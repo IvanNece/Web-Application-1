@@ -1,4 +1,72 @@
-# Indovina la Frase – Server (Backend)
+# Server Backend - Indovina la Frase
+
+## Panoramica Architettura
+
+Server Express.js per il gioco "Indovina la Frase" dell'esame AW1 2024/25.
+Implementa gameplay autenticato e guest, autenticazione basata su sessioni e database SQLite.
+Segue il pattern "due server" separati (client React su porta 5173, API su porta 3001) con esposizione controllata dei dati per mantenere segreta la frase da indovinare.
+
+## Stack Tecnologico
+
+### Runtime e Framework
+- **Runtime**: Node.js 22.x (LTS) con ES Modules
+- **Framework Web**: Express.js per API REST
+- **CORS**: Configurato per comunicazione cross-origin con client React
+- **Logging**: Morgan per richieste HTTP, logging personalizzato per errori
+
+### Autenticazione e Sicurezza  
+- **Autenticazione**: Passport.js con strategia local (username/password)
+- **Sessioni**: express-session con cookie httpOnly
+- **Hash Password**: bcryptjs per sicurezza credenziali
+- **Validazione**: express-validator per sanitizzazione input
+
+### Database e Persistenza
+- **Database**: SQLite file-based per semplicità e portabilità
+- **Driver**: sqlite3 con wrapper Promise personalizzato
+- **Schema**: Tabelle users, games, phrases, game_letters con foreign key
+- **Transazioni**: Supporto ACID per operazioni atomiche
+
+### Development Tools
+- **Auto-restart**: nodemon per sviluppo
+- **Testing**: File .http per REST Client (VS Code)
+- **Debugging**: Logging colorato e healthcheck endpoint
+
+## Struttura Progetto
+
+```
+server/
+├── index.mjs                 # Entry point server Express con middleware
+├── package.json             # Dipendenze e script npm
+├── nodemon.json             # Configurazione auto-restart sviluppo
+│
+├── api/                     # Router API REST
+│   ├── games.js            # Partite autenticate con sistema monete
+│   ├── guest.js            # Partite guest senza autenticazione
+│   ├── sessions.js         # Login/logout/status sessioni
+│   └── meta.js             # Metadati sistema (costi lettere)
+│
+├── auth/                    # Sistema autenticazione
+│   └── passport.js         # Configurazione Passport.js local strategy
+│
+├── lib/                     # Utility e helper
+│   ├── db.js               # Wrapper SQLite con Promise
+│   └── costs.js            # Sistema calcolo costi lettere
+│
+├── db/                      # Database e schema
+│   ├── aw1.db              # Database SQLite (generato da initdb)
+│   ├── schema.sql          # Struttura tabelle e vincoli
+│   └── seed.sql            # Dati iniziali (frasi di gioco)
+│
+├── scripts/                 # Script manutenzione
+│   └── initdb.mjs          # Inizializzazione database completa
+│
+└── tests/                   # Suite test e validazione
+    ├── *.mjs               # Test automatizzati (vincoli, API, concorrenza)
+    ├── *.http              # Collection REST Client
+    └── *.md                # Documentazione testing
+```
+
+## Guida Rapida Sviluppose – Server (Backend)
 
 Node.js + Express backend for the AW1 2024/25 exam project **“Indovina la Frase”**.  
 It implements authenticated and guest gameplay, session-based authentication, and a SQLite database. The server follows the two-server pattern (client on Vite 5173, API on 3001) and exposes only data that are strictly necessary to avoid leaking the secret phrase.
@@ -16,18 +84,47 @@ It implements authenticated and guest gameplay, session-based authentication, an
 
 ---
 
-## How to Run (development)
+## Guida Rapida Sviluppo
 
+### Setup Iniziale
 ```bash
-# from repo root
+# Dalla root del repository
 cd server
-npm install
-npm run initdb      # creates db/aw1.db from schema + seed
-npm run dev         # nodemon index.mjs (API on http://localhost:3001)
+npm install                 # Installa dipendenze
+npm run initdb             # Crea database con utenti di test
+npm run dev                # Avvia server con auto-restart
 ```
 
-- CORS is configured to allow the React client on `http://localhost:5173` and to **include credentials** (cookies).  
-- Cookies are `httpOnly`, `SameSite=Lax`, and `secure=false` in development.
+### Utenti di Test Predefiniti
+- **novice** / `NoviceUser123!` - Utente nuovo (100 monete)
+- **empty** / `EmptyCoins456@` - Utente senza monete (0 monete)  
+- **player** / `PlayerGame789#` - Utente con storico (180 monete)
+
+### Endpoint Principali
+- **API Server**: `http://localhost:3001`
+- **Healthcheck**: `GET /api/health`
+- **Autenticazione**: `POST /api/sessions` (login)
+- **Partite Auth**: `POST /api/games` (richiede login)
+- **Partite Guest**: `POST /api/guest/games` (libero accesso)
+
+## Configurazioni Importanti
+
+### CORS e Sicurezza
+- Client autorizzato: `http://localhost:5173` (Vite dev server)
+- Credential: Abilitati per cookie di sessione
+- Cookie: httpOnly, SameSite=Lax, secure=false (sviluppo)
+
+### Database SQLite
+- File: `db/aw1.db` (creato automaticamente da initdb)
+- Foreign Key: Abilitate per integrità referenziale
+- Transazioni: ACID compliance per operazioni monete
+
+### Sistema Monete
+- Lettere rare (K,J,X,Q,Z): 1 moneta
+- Lettere comuni (T,N,H,S): 5 monete  
+- Vocali: 10 monete (una sola per partita)
+- Vittoria: +100 monete
+- Timeout: -20 monete
 
 ---
 

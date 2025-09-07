@@ -1,0 +1,706 @@
+/**
+ * FEEDBACK-SYSTEM.CSS - SISTEMA FEEDBACK E NOTIFICHE
+ * 
+ * SCOPO:
+ * Stili per il sistema di feedback avanzato, banner di notifica,
+ * stati di loading e overlay di sincronizzazione. Utilizzato dal
+ * componente FeedbackSystem.jsx per comunicazioni utente.
+ * 
+ * SEZIONI INCLUSE:
+ * - .feedback-banner: Banner principali per messaggi
+ * - .sync-overlay: Overlay sincronizzazione server
+ * - .loading-spinner: Spinners di caricamento
+ * - Animazioni feedback e stati speciali
+ * 
+ * COMPONENTI REACT ASSOCIATI:
+ * - FeedbackSystem.jsx: Componente principale feedback
+ * - LoadingStateManager.jsx: Gestione stati loading
+ * - Game.jsx: Container che utilizza feedback
+ * - GuestGame.jsx: Container che utilizza feedback
+ * 
+ * DIPENDENZE:
+ * Richiede base.css per variabili CSS e animazioni globali.
+ */
+
+/* ===============================
+   STATI LOADING E SPINNERS
+   =============================== */
+
+.game-container.loading {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 400px;
+}
+
+.loading-spinner,
+.sync-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid rgba(138, 43, 226, 0.3);
+  border-top: 3px solid var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.sync-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 2px;
+  margin-bottom: 0;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===============================
+   OVERLAY SINCRONIZZAZIONE
+   =============================== */
+
+.sync-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--accent-cyan);
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-small);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--accent-cyan);
+  animation: slideInRight 0.3s ease;
+}
+
+/* ===============================
+   BANNER FEEDBACK PRINCIPALI
+   =============================== */
+
+.feedback-banner:not(.victory-modal):not(.timeout-modal) {
+  position: relative;
+  margin: 0 auto 0.3rem auto;
+  max-width: 350px;
+  min-width: 200px;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  backdrop-filter: blur(20px);
+  border: 1px solid;
+  animation: feedbackSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animazione di ingresso più fluida */
+@keyframes feedbackSlideIn {
+  0% {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-5px) scale(1.02);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Transizione di uscita fluida */
+.feedback-banner.hiding {
+  animation: feedbackSlideOut 0.3s ease-out forwards;
+}
+
+@keyframes feedbackSlideOut {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Forza dimensioni compatte per tutti i banner normali */
+.feedback-banner:not(.game-end-modal):not(.victory-modal):not(.timeout-modal) {
+  max-width: 350px !important;
+  min-width: 200px !important;
+  padding: 0.3rem 0.5rem !important;
+  margin: 0 auto 0.3rem auto !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+}
+
+/* ===============================
+   BANNER FINE GIOCO MODALI
+   =============================== */
+
+.feedback-banner.victory-modal,
+.feedback-banner.timeout-modal {
+  position: relative;
+  margin: 0 auto 1.5rem auto;
+  max-width: 600px;
+  min-width: 300px;
+  border-radius: 12px;
+  padding: 1rem;
+  backdrop-filter: blur(20px);
+  border: 2px solid;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.feedback-banner.victory-modal,
+.feedback-banner.timeout-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(0.9) !important;
+  animation: gameEndModalIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  z-index: 6000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  max-width: 500px !important;
+  width: 90vw !important;
+  min-height: 200px !important;
+  background: var(--gradient-main) !important;
+  border: 3px solid !important;
+  border-image: var(--gradient-border) 1 !important;
+  border-radius: 20px !important;
+  padding: 2rem !important;
+  box-shadow: var(--shadow-main), var(--shadow-inset) !important;
+  pointer-events: none !important;
+  opacity: 0;
+}
+
+/* Animazione ingresso modal fluida */
+@keyframes gameEndModalIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotateY(90deg);
+    backdrop-filter: blur(0px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.05) rotateY(45deg);
+    backdrop-filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotateY(0deg);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Animazione contenuto modal staggered */
+.feedback-banner.victory-modal .feedback-content,
+.feedback-banner.timeout-modal .feedback-content {
+  animation: modalContentIn 0.4s ease-out 0.3s both;
+}
+
+@keyframes modalContentIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feedback-banner.victory-modal button,
+.feedback-banner.timeout-modal button,
+.feedback-banner.victory-modal .game-end-actions button,
+.feedback-banner.timeout-modal .game-end-actions button {
+  pointer-events: auto !important;
+  animation: buttonFadeIn 0.4s ease-out 0.6s both;
+}
+
+/* Animazione pulsanti del modal */
+@keyframes buttonFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===============================
+   BANNER GAME-END-MODAL
+   =============================== */
+
+.feedback-banner.game-end-modal {
+  all: unset !important;
+  animation: none !important;
+  transition: none !important;
+  position: fixed !important;
+  margin: 0 !important;
+  max-width: 500px !important;
+  min-width: auto !important;
+  border-radius: 20px !important;
+  padding: 2rem !important;
+  backdrop-filter: none !important;
+  border: 3px solid !important;
+  box-shadow: var(--shadow-main), var(--shadow-inset) !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  width: 90vw !important;
+  min-height: 200px !important;
+  z-index: 6000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  background: var(--gradient-main) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Bordo generico solo per non-vittoria */
+.feedback-banner.game-end-modal:not(.victory-modal) {
+  border-image: var(--gradient-border) 1 !important;
+}
+
+/* ===============================
+   CONTENUTO BANNER FINE GIOCO
+   =============================== */
+
+.feedback-banner.game-end-modal .feedback-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  text-align: center !important;
+  color: var(--text-primary) !important;
+}
+
+.feedback-banner.game-end-modal .feedback-header {
+  justify-content: center !important;
+  text-align: center !important;
+  font-size: 1.5rem !important;
+  margin-bottom: 1rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.feedback-banner.game-end-modal .feedback-icon {
+  font-size: 3rem !important;
+  margin: 0 !important;
+  filter: drop-shadow(0 0 10px currentColor) !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.feedback-banner.game-end-modal .feedback-header strong {
+  font-size: 1.4rem !important;
+  font-weight: bold !important;
+  color: var(--accent-cyan) !important;
+  text-shadow: var(--shadow-text) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  transition: none !important;
+}
+
+.feedback-banner.game-end-modal .feedback-details {
+  text-align: center !important;
+  font-size: 1rem !important;
+  margin: 1rem 0 2rem 0 !important;
+  line-height: 1.6 !important;
+  color: var(--text-primary) !important;
+  opacity: 0.9 !important;
+}
+
+/* ===============================
+   PULSANTI FINE GIOCO
+   =============================== */
+
+.feedback-banner.game-end-modal .game-end-actions {
+  margin-top: 2rem !important;
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+}
+
+.feedback-banner.game-end-modal .game-end-actions button {
+  background: linear-gradient(
+    135deg,
+    var(--accent-purple) 0%,
+    #ff1493 100%
+  ) !important;
+  border: 2px solid var(--border-primary) !important;
+  border-radius: 25px !important;
+  color: white !important;
+  padding: 1rem 2rem !important;
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.4) !important;
+}
+
+.feedback-banner.game-end-modal .game-end-actions button:hover {
+  background: linear-gradient(135deg, #9a2be2 0%, #ff1493 100%) !important;
+  border-color: var(--accent-cyan) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 0 30px var(--border-primary) !important;
+}
+
+/* ===============================
+   TEMI SPECIFICI BANNER
+   =============================== */
+
+/* MESSAGGIO VITTORIA - Azzurro punk fluo con effetti glow */
+.feedback-banner.game-end-modal.victory-modal {
+  border: 3px solid #00ccff !important;
+  border-image: linear-gradient(
+      45deg,
+      #00ccff,
+      #0099ff,
+      #00ffff,
+      #0099ff,
+      #00ccff
+    )
+    1 !important;
+  box-shadow: 0 0 30px rgba(0, 204, 255, 0.8), 0 0 60px rgba(0, 204, 255, 0.6),
+    0 0 90px rgba(0, 204, 255, 0.4), inset 0 0 30px rgba(0, 255, 255, 0.2),
+    var(--shadow-inset) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 13, 13, 0.95),
+    rgba(0, 20, 40, 0.9),
+    rgba(13, 13, 13, 0.95)
+  ) !important;
+}
+
+.feedback-banner.game-end-modal.victory-modal .feedback-header strong {
+  color: #00ccff !important;
+  text-shadow: 0 0 20px #00ccff, 0 0 40px rgba(0, 204, 255, 0.6) !important;
+  font-size: 1.8rem !important;
+}
+
+.feedback-banner.game-end-modal.victory-modal .feedback-icon {
+  color: #00ffff !important;
+  filter: drop-shadow(0 0 20px #00ccff)
+    drop-shadow(0 0 40px rgba(0, 255, 255, 0.7)) !important;
+  font-size: 2.5rem !important;
+}
+
+/* MESSAGGIO TIMEOUT - Rosso fluo intenso */
+.feedback-banner.game-end-modal.timeout-modal {
+  border-image: linear-gradient(
+      45deg,
+      #ff0040,
+      #ff1155,
+      #ff0040,
+      #ff3366,
+      #ff0040
+    )
+    1 !important;
+  box-shadow: 0 0 30px rgba(255, 0, 64, 0.7), 0 0 60px rgba(255, 0, 64, 0.5),
+    0 0 90px rgba(255, 0, 64, 0.3), inset 0 0 30px rgba(255, 0, 64, 0.1),
+    var(--shadow-inset) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 13, 13, 0.95),
+    rgba(40, 0, 10, 0.9),
+    rgba(13, 13, 13, 0.95)
+  ) !important;
+}
+
+.feedback-banner.game-end-modal.timeout-modal .feedback-header strong {
+  color: #ff1155 !important;
+  text-shadow: 0 0 20px #ff0040, 0 0 40px rgba(255, 17, 85, 0.6) !important;
+  font-size: 1.8rem !important;
+}
+
+.feedback-banner.game-end-modal.timeout-modal .feedback-icon {
+  color: #ff0040 !important;
+  filter: drop-shadow(0 0 20px #ff0040)
+    drop-shadow(0 0 40px rgba(255, 0, 64, 0.7)) !important;
+  font-size: 2.5rem !important;
+}
+
+/* MESSAGGIO ABBANDONO - Arancione fluo drammatico */
+.feedback-banner.game-end-modal:not(.victory-modal):not(.timeout-modal) {
+  border-image: linear-gradient(
+      45deg,
+      #ff8800,
+      #ffaa33,
+      #ff6600,
+      #ffaa33,
+      #ff8800
+    )
+    1 !important;
+  box-shadow: 0 0 30px rgba(255, 136, 0, 0.7), 0 0 60px rgba(255, 136, 0, 0.5),
+    0 0 90px rgba(255, 136, 0, 0.3), inset 0 0 30px rgba(255, 136, 0, 0.1),
+    var(--shadow-inset) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 13, 13, 0.95),
+    rgba(40, 25, 0, 0.9),
+    rgba(13, 13, 13, 0.95)
+  ) !important;
+}
+
+.feedback-banner.game-end-modal:not(.victory-modal):not(.timeout-modal)
+  .feedback-header
+  strong {
+  color: #ffaa33 !important;
+  text-shadow: 0 0 20px #ff8800, 0 0 40px rgba(255, 136, 0, 0.6) !important;
+  font-size: 1.8rem !important;
+}
+
+.feedback-banner.game-end-modal:not(.victory-modal):not(.timeout-modal)
+  .feedback-icon {
+  color: #ff8800 !important;
+  filter: drop-shadow(0 0 20px #ff8800)
+    drop-shadow(0 0 40px rgba(255, 136, 0, 0.7)) !important;
+  font-size: 2.5rem !important;
+}
+
+/* MIGLIORAMENTI GENERALI PER TUTTI I MESSAGGI */
+.feedback-banner.game-end-modal .feedback-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1.5rem !important;
+  text-align: center !important;
+  color: var(--text-primary) !important;
+}
+
+.feedback-banner.game-end-modal .feedback-details {
+  font-size: 1.1rem !important;
+  opacity: 0.9 !important;
+  margin: 0 !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
+}
+
+.feedback-banner.game-end-modal .game-end-actions button {
+  background: rgba(13, 13, 13, 0.8) !important;
+  border: 2px solid currentColor !important;
+  color: inherit !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-shadow: 0 0 10px currentColor !important;
+  transition: all 0.3s ease !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.feedback-banner.game-end-modal .game-end-actions button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 0 20px currentColor, inset 0 0 20px rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ===============================
+   BANNER GENERICI TIPIZZATI
+   =============================== */
+
+.feedback-banner.success {
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.2),
+    rgba(39, 174, 96, 0.2)
+  );
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  max-width: 350px !important;
+  min-width: 200px !important;
+  padding: 0.3rem 0.5rem !important;
+  margin: 0 auto 0.3rem auto !important;
+  font-size: 0.8rem !important;
+}
+
+.feedback-banner.error {
+  background: linear-gradient(
+    135deg,
+    rgba(231, 76, 60, 0.2),
+    rgba(192, 57, 43, 0.2)
+  );
+  border-color: #e74c3c;
+  color: #ff6b6b;
+  max-width: 350px !important;
+  min-width: 200px !important;
+  padding: 0.3rem 0.5rem !important;
+  margin: 0 auto 0.3rem auto !important;
+  font-size: 0.8rem !important;
+}
+
+.feedback-banner.warning {
+  background: linear-gradient(
+    135deg,
+    rgba(241, 196, 15, 0.2),
+    rgba(230, 126, 34, 0.2)
+  );
+  border-color: var(--accent-yellow);
+  color: var(--accent-yellow);
+  max-width: 350px !important;
+  min-width: 200px !important;
+  padding: 0.3rem 0.5rem !important;
+  margin: 0 auto 0.3rem auto !important;
+  font-size: 0.8rem !important;
+}
+
+.feedback-banner.info {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.2),
+    rgba(41, 128, 185, 0.2)
+  );
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  max-width: 350px !important;
+  min-width: 200px !important;
+  padding: 0.3rem 0.5rem !important;
+  margin: 0 auto 0.3rem auto !important;
+  font-size: 0.8rem !important;
+}
+
+/* ===============================
+   CONTENUTO FEEDBACK
+   =============================== */
+
+.feedback-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  font-size: 0.8rem !important;
+  line-height: 1.1;
+}
+
+.feedback-icon {
+  font-size: 0.9rem !important;
+  margin-right: 0.15rem;
+}
+
+.feedback-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.feedback-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.feedback-details {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  margin-left: 1.2rem;
+}
+
+/* ===============================
+   TIMER WARNING SPECIFICO
+   =============================== */
+
+.feedback-banner.timer-warning-banner:not(.game-end-modal) {
+  position: fixed !important;
+  top: 80px !important;
+  right: 20px !important;
+  left: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  max-width: 350px !important;
+  min-width: 300px !important;
+  z-index: 2000;
+  animation: timerWarningSlideIn 0.5s ease !important;
+}
+
+.feedback-banner.time-warning {
+  top: 120px;
+  right: 20px;
+  left: auto;
+  transform: none;
+  max-width: 320px;
+  animation: timeWarningSlide 0.4s ease;
+}
+
+/* ===============================
+   ANIMAZIONI FEEDBACK
+   =============================== */
+
+@keyframes feedbackFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes timerWarningSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes timeWarningSlide {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes feedbackSlideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

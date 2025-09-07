@@ -1,33 +1,43 @@
+###
+# ========================================
+# TEST SUITE: API GAMEPLAY COMPLETE
+# ========================================
+# 
+# Collection completa per testare tutte le API di gioco
+# Include flussi autenticati e guest con scenari realistici
+# Variabili dinamiche per workflow automatizzato
+###
+
 @host = http://localhost:3001
 
-### LOGIN come utente con monete
+### SETUP: Login utente con monete sufficienti
 POST {{host}}/api/sessions
 Content-Type: application/json
 
-{ "username": "novice", "password": "password" }
+{ "username": "novice", "password": "NoviceUser123!" }
 
-### CREA PARTITA (auth)
+### TEST: Creazione nuova partita autenticata
 # @name createAuthGame
 POST {{host}}/api/games
 
-@authGameId = {{createAuthGame.response.body.$.gameId}}
+@authGameId = {{createAuthGame.response.body.gameId}}
 
-### STATO PARTITA (auth)
+### TEST: Recupero stato partita corrente
 GET {{host}}/api/games/{{authGameId}}
 
-### LETTERA COLPITA (prova una frequente, es. 'T')
+### TEST: Tentativo lettera frequente (costo alto)
 POST {{host}}/api/games/{{authGameId}}/guess-letter
 Content-Type: application/json
 
-{ "letter": "t" }
+{ "letter": "T" }
 
-### LETTERA DUPLICATA (stessa 'T' → costo 0)
+### TEST: Tentativo lettera duplicata (deve essere gratuita)
 POST {{host}}/api/games/{{authGameId}}/guess-letter
 Content-Type: application/json
 
-{ "letter": "t" }
+{ "letter": "T" }
 
-### VOCALE (es. 'A'): se già usata blocca, altrimenti costa 10
+### TEST: Tentativo vocale (costo 10, solo una per partita)
 POST {{host}}/api/games/{{authGameId}}/guess-letter
 Content-Type: application/json
 
@@ -61,11 +71,11 @@ Content-Type: application/json
 
 ### --- MODALITÀ GUEST (nessun login) ---
 
-### CREA PARTITA guest
+### TEST: Creazione partita guest (senza autenticazione)
 # @name createGuestGame
 POST {{host}}/api/guest/games
 
-@guestGameId = {{createGuestGame.response.body.$.gameId}}
+@guestGameId = {{createGuestGame.response.body.gameId}}
 
 ### STATO guest
 GET {{host}}/api/guest/games/{{guestGameId}}

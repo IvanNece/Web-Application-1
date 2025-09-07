@@ -1,26 +1,36 @@
-### LOGIN OK
+###
+# ========================================
+# TEST SUITE: AUTENTICAZIONE API
+# ========================================
+# 
+# Collection per testare tutti i flussi di autenticazione
+# Include login, logout, verifica stato sessione
+# Testabile con REST Client (VS Code) o simili
+###
+
+### TEST: Login con credenziali valide
 POST http://localhost:3001/api/sessions
 Content-Type: application/json
 
 {
   "username": "novice",
-  "password": "password"
+  "password": "NoviceUser123!"
 }
 
-### LOGIN KO (credenziali errate)
+### TEST: Login con credenziali errate  
 POST http://localhost:3001/api/sessions
 Content-Type: application/json
 
 {
   "username": "novice",
-  "password": "wrong"
+  "password": "wrong_password"
 }
 
-### ME (dopo login OK deve essere 200) 200 = OK 
+### TEST: Verifica stato sessione corrente (dopo login deve essere 200)
 GET http://localhost:3001/api/sessions/current
 
-### LOGOUT (invalida la sessione)
+### TEST: Logout e invalidazione sessione
 DELETE http://localhost:3001/api/sessions/current
 
-### ME (dopo logout deve essere 401) 401 = Unauthorized
+### TEST: Verifica sessione dopo logout (deve essere 401 Unauthorized)
 GET http://localhost:3001/api/sessions/current

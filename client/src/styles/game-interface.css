@@ -1,0 +1,463 @@
+/**
+ * GAME-INTERFACE.CSS - INTERFACCIA E CONTROLLI DI GIOCO
+ * 
+ * SCOPO:
+ * Stili per l'interfaccia utente del gioco incluse le informazioni secondarie
+ * (timer, monete, stato vocali), barra progresso e legenda della griglia.
+ * Utilizzato dai componenti di controllo e gestione stato del gioco.
+ * 
+ * SEZIONI INCLUSE:
+ * - .game-secondary-info: Panel info timer, monete, stato vocali
+ * - .progress-bar: Barra progresso completamento frase
+ * - .grid-legend: Legenda per comprendere stato celle frase
+ * - .letter-costs-panel: Pannello visualizzazione costi lettere
+ * 
+ * COMPONENTI REACT ASSOCIATI:
+ * - GameControls.jsx: Utilizza .game-secondary-info per controlli
+ * - PhraseDisplay.jsx: Utilizza .grid-legend per legenda
+ * - VirtualKeyboard.jsx: Utilizza .letter-costs-panel per costi
+ * - LoadingStateManager.jsx: Utilizza .progress-bar per feedback
+ * 
+ * DIPENDENZE:
+ * Richiede base.css per variabili CSS e animazioni globali.
+ */
+
+/* ===============================
+   CONTROLLI INPUT COMPATTI
+   =============================== */
+
+.unified-input-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.letter-input-section,
+.phrase-input-section {
+  flex: 1;
+  max-width: 400px;
+  background: rgba(26, 10, 26, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1rem;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.letter-input-section h4,
+.phrase-input-section h4 {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  text-shadow: 0 0 5px var(--border-secondary);
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin-bottom: 0.5rem;
+  height: 45px;
+}
+
+.letter-input {
+  width: 50px;
+  height: 45px;
+  background: rgba(26, 10, 26, 0.8);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  font-family: "Courier New", monospace;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  padding: 0.2rem;
+  line-height: 1;
+}
+
+.phrase-input {
+  flex: 1;
+  height: 45px;
+  background: rgba(26, 10, 26, 0.8);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 0 0.8rem;
+  font-size: 1rem;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.letter-input:focus,
+.phrase-input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 15px var(--border-primary);
+  outline: none;
+}
+
+.guess-letter-btn,
+.guess-phrase-btn {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, var(--accent-purple), #ff1493);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guess-letter-btn:hover,
+.guess-phrase-btn:hover {
+  background: linear-gradient(135deg, #9a2be2, #ff1493);
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px var(--border-primary);
+}
+
+.guess-letter-btn:disabled,
+.guess-phrase-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cost-preview {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  min-height: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.3rem;
+}
+
+.vowel-warning {
+  color: var(--accent-yellow);
+  font-weight: bold;
+}
+
+/* ===============================
+   INFO SECONDARIE GIOCO
+   =============================== */
+
+.game-secondary-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(26, 10, 26, 0.6);
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+}
+
+.timer {
+  background: linear-gradient(135deg, var(--accent-purple) 0%, #ff1493 100%);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--border-radius-secondary);
+  font-weight: bold;
+  font-size: 0.85rem;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.6),
+    inset 0 2px 10px rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 20, 147, 0.5);
+  flex-shrink: 0;
+  width: 100px;
+  text-align: center;
+}
+
+.coins {
+  background: linear-gradient(135deg, var(--accent-yellow) 0%, #ffa500 100%);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: var(--border-radius-secondary);
+  font-weight: bold;
+  font-size: 1rem;
+  box-shadow: 0 2px 10px rgba(255, 193, 7, 0.2);
+}
+
+.vowel-status {
+  background: linear-gradient(
+    135deg,
+    var(--accent-cyan) 0%,
+    var(--accent-purple) 100%
+  );
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--border-radius-secondary);
+  font-weight: bold;
+  font-size: 0.75rem;
+  box-shadow: 0 0 15px var(--border-secondary),
+    inset 0 2px 10px rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-primary);
+  flex-shrink: 0;
+  width: 120px;
+  text-align: center;
+}
+
+/* ===============================
+   SEZIONE FRASE E PROGRESSO
+   =============================== */
+
+.phrase-section {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.phrase-section h3 {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-shadow: 0 0 10px var(--border-secondary);
+}
+
+.phrase-progress {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 5px var(--border-primary));
+}
+
+/* ===============================
+   BARRA PROGRESSO
+   =============================== */
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(26, 10, 26, 0.6);
+  border-radius: 10px;
+  margin: 1rem 0;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-secondary);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5), 0 0 10px var(--border-subtle);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #00ff00,
+    var(--accent-cyan),
+    var(--accent-purple)
+  );
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  position: relative;
+  box-shadow: 0 0 15px var(--border-primary);
+}
+
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* ===============================
+   LEGENDA GRIGLIA
+   =============================== */
+
+.grid-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding: 0.6rem;
+  background: rgba(26, 10, 26, 0.4);
+  border-radius: 10px;
+  border: 1px solid var(--border-secondary);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  text-shadow: 0 0 5px var(--border-secondary);
+}
+
+.legend-cell {
+  width: 25px;
+  height: 30px;
+  border: 2px solid var(--border-primary);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 0.9rem;
+  background: rgba(26, 10, 26, 0.6);
+  color: var(--text-primary);
+}
+
+.legend-cell.empty {
+  background: rgba(26, 10, 26, 0.6);
+  border-color: rgba(138, 43, 226, 0.4);
+}
+
+.legend-cell.revealed {
+  background: linear-gradient(135deg, #00ff00 0%, var(--accent-cyan) 100%);
+  color: white;
+  border-color: #00ff00;
+  box-shadow: 0 0 10px var(--border-secondary);
+}
+
+.legend-cell.space {
+  border: none;
+  background: transparent;
+}
+
+/* ===============================
+   PANNELLO COSTI LETTERE
+   =============================== */
+
+.letter-costs-panel {
+  margin: 2rem 0;
+  padding: 2rem;
+  background: var(--gradient-secondary);
+  border: 2px solid var(--border-secondary);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+.letter-costs-panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-purple),
+    var(--accent-cyan),
+    #ff1493
+  );
+  border-radius: 20px 20px 0 0;
+  animation: borderGlow 3s ease-in-out infinite alternate;
+}
+
+.costs-title {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  text-align: center;
+  text-shadow: var(--shadow-text);
+  font-weight: bold;
+}
+
+.cost-groups {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cost-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(26, 10, 26, 0.6);
+  border-radius: var(--border-radius-secondary);
+  border: 1px solid var(--border-secondary);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.cost-group-title {
+  color: var(--accent-cyan);
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 5px var(--border-secondary);
+}
+
+.cost-letters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cost-letter {
+  width: 35px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 10, 26, 0.8),
+    rgba(10, 26, 42, 0.8)
+  );
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--border-radius-small);
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: 0 0 5px var(--border-secondary);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1);
+}
+
+.cost-letter .letter {
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
+}
+
+.cost-letter .cost {
+  font-size: 0.7rem;
+  color: var(--accent-yellow);
+  font-weight: 600;
+}
+
+.costs-note {
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

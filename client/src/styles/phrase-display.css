@@ -1,0 +1,385 @@
+/**
+ * PHRASE-DISPLAY.CSS - VISUALIZZAZIONE E ANIMAZIONI FRASE
+ * 
+ * SCOPO:
+ * Stili per la griglia di visualizzazione della frase da indovinare,
+ * incluse le animazioni di rivelazione lettere e stati delle celle.
+ * Utilizzato principalmente dal componente PhraseDisplay.jsx.
+ * 
+ * SEZIONI INCLUSE:
+ * - .phrase-grid: Container principale griglia frase
+ * - .phrase-cell: Singole celle lettere/spazi
+ * - Animazioni rivelazione lettere (reveal, final-reveal)
+ * - Stati speciali (loading, final, space)
+ * 
+ * COMPONENTI REACT ASSOCIATI:
+ * - PhraseDisplay.jsx: Componente principale per rendering frase
+ * - Game.jsx: Container che utilizza PhraseDisplay
+ * - GuestGame.jsx: Container che utilizza PhraseDisplay
+ * 
+ * DIPENDENZE:
+ * Richiede base.css per variabili CSS e animazioni globali.
+ */
+
+/* ===============================
+   GRIGLIA PRINCIPALE FRASE
+   =============================== */
+
+.phrase-grid {
+  margin: 1rem 0;
+  padding: 1.2rem;
+  background: var(--gradient-secondary);
+  border-radius: 15px;
+  border: 2px solid rgba(186, 85, 211, 0.6);
+  backdrop-filter: blur(15px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(186, 85, 211, 0.3),
+    inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Layout intelligente per preservare parole intere */
+.phrase-grid.intelligent-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem; /* Ridotto da 0.8rem per maggiore compattezza */
+  align-items: center;
+}
+
+/* Righe del layout intelligente */
+.phrase-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem; /* Ridotto da 0.4rem per ottimizzare spazio */
+  flex-wrap: nowrap;
+}
+
+.phrase-row.first-row,
+.phrase-row.second-row {
+  min-height: 2.8rem; /* Leggermente ridotto per compattezza */
+}
+
+/* Fallback per layout tradizionale */
+.phrase-grid:not(.intelligent-layout) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.phrase-grid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #ba55d3, #da70d6, #dda0dd, #ba55d3);
+  animation: borderGlow 3s ease-in-out infinite alternate;
+}
+
+.phrase-grid.loading {
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  text-shadow: 0 0 10px var(--border-primary);
+}
+
+.phrase-grid.final {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 0, 0.2),
+    rgba(0, 255, 255, 0.2)
+  );
+  border-color: #00ff00;
+  animation: finalReveal 0.8s ease-out;
+  box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
+}
+
+@keyframes finalReveal {
+  from {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===============================
+   TRANSIZIONI FINE GIOCO
+   =============================== */
+
+/* Container in stato transizione */
+.phrase-grid.transitioning {
+  opacity: 0.7;
+  transform: scale(0.98);
+  transition: all 0.3s ease-out;
+}
+
+/* Container durante reveal progressivo */
+.phrase-grid.revealing {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Container transizione completata */
+.phrase-grid.completed {
+  opacity: 1;
+  transform: scale(1);
+  animation: pulseSuccess 0.6s ease-out;
+}
+
+/* Animazione pulsazione successo */
+@keyframes pulseSuccess {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Celle durante transizione intermedia */
+.phrase-cell.transitioning {
+  opacity: 0.8;
+  transform: scale(0.95);
+  transition: all 0.3s ease-out;
+}
+
+/* Animazione staggered reveal per lettere finali */
+.phrase-cell.final-revealing {
+  animation: staggeredReveal 0.4s ease-out forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes staggeredReveal {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.8) rotateY(90deg);
+    background: rgba(26, 10, 26, 0.6);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1) rotateY(45deg);
+    background: linear-gradient(135deg, #ba55d3 30%, #da70d6 70%);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.08) rotateY(0deg);
+    background: linear-gradient(
+      135deg,
+      #ba55d3 0%,
+      #da70d6 30%,
+      #dda0dd 70%,
+      #c8a2c8 100%
+    );
+  }
+}
+
+/* ===============================
+   CELLE INDIVIDUALI FRASE
+   =============================== */
+
+.phrase-cell {
+  width: 36px; /* Dimensione base per frasi normali */
+  height: 40px;
+  border: 2px solid rgba(186, 85, 211, 0.7);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background: rgba(26, 10, 26, 0.8);
+  backdrop-filter: blur(8px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(186, 85, 211, 0.3),
+    inset 0 2px 6px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Ridimensionamento dinamico per frasi lunghe */
+.phrase-grid.phrase-long .phrase-cell {
+  width: 30px; /* Ridotto da 32px - frasi 40-60 caratteri */
+  height: 34px; /* Ridotto da 36px */
+  font-size: 1.05rem; /* Ridotto da 1.1rem */
+}
+
+.phrase-grid.phrase-very-long .phrase-cell {
+  width: 26px; /* Ridotto da 28px - frasi 60+ caratteri */
+  height: 30px; /* Ridotto da 32px */
+  font-size: 0.95rem; /* Ridotto da 1rem */
+}
+
+/* Frasi estremamente lunghe (70+ caratteri) */
+.phrase-grid.phrase-extra-long .phrase-cell {
+  width: 24px; /* Celle molto compatte */
+  height: 28px;
+  font-size: 0.9rem;
+}
+
+.phrase-grid.phrase-extra-long .phrase-cell.space {
+  width: 4px; /* Spazi minimi per frasi estreme */
+}
+
+/* Gap ulteriormente ridotto per frasi lunghe */
+.phrase-grid.phrase-long .phrase-row {
+  gap: 0.2rem; /* Ridotto da 0.25rem */
+}
+
+.phrase-grid.phrase-very-long .phrase-row {
+  gap: 0.15rem; /* Ridotto da 0.2rem */
+}
+
+.phrase-grid.phrase-extra-long .phrase-row {
+  gap: 0.1rem; /* Gap minimo per frasi estreme */
+}
+
+.phrase-cell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(218, 112, 214, 0.4),
+    transparent
+  );
+  transition: left 0.6s;
+}
+
+.phrase-cell:hover::before {
+  left: 100%;
+}
+
+.phrase-cell.space {
+  border: none;
+  background: transparent;
+  width: 12px; /* Ridotto da 20px - spazi molto più compatti */
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Ridimensionamento spazi per frasi lunghe */
+.phrase-grid.phrase-long .phrase-cell.space {
+  width: 8px; /* Spazi ancora più piccoli per frasi lunghe */
+}
+
+.phrase-grid.phrase-very-long .phrase-cell.space {
+  width: 6px; /* Spazi minimi per frasi molto lunghe */
+}
+
+.phrase-cell.space::before {
+  display: none;
+}
+
+.phrase-cell.revealed {
+  background: linear-gradient(
+    135deg,
+    #ba55d3 0%,
+    #da70d6 30%,
+    #dda0dd 70%,
+    #c8a2c8 100%
+  );
+  color: var(--text-primary);
+  border-color: #ba55d3;
+  transform: scale(1.08);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 30px rgba(186, 85, 211, 0.6),
+    0 0 25px rgba(218, 112, 214, 0.5), inset 0 2px 10px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 5px rgba(139, 69, 19, 0.2);
+  animation: letterReveal 0.5s ease-out;
+}
+
+.phrase-cell.final-revealed {
+  background: linear-gradient(135deg, var(--accent-purple) 0%, #ff1493 100%);
+  color: white;
+  border-color: var(--accent-purple);
+  transform: scale(1.02);
+  box-shadow: 0 5px 20px rgba(138, 43, 226, 0.4),
+    0 0 15px rgba(255, 20, 147, 0.3);
+  animation: finalLetterReveal 0.3s ease-out forwards;
+}
+
+/* ===============================
+   ANIMAZIONI RIVELAZIONE
+   =============================== */
+
+@keyframes letterReveal {
+  0% {
+    transform: scale(0.8) rotateY(90deg);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(186, 85, 211, 0);
+  }
+  50% {
+    transform: scale(1.1) rotateY(45deg);
+    opacity: 0.7;
+    box-shadow: 0 0 15px rgba(218, 112, 214, 0.3);
+  }
+  100% {
+    transform: scale(1.08) rotateY(0deg);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(186, 85, 211, 0.6),
+      0 0 25px rgba(218, 112, 214, 0.5),
+      inset 0 2px 10px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes finalLetterReveal {
+  0% {
+    transform: scale(1);
+    background: rgba(26, 10, 26, 0.6);
+    color: var(--text-primary);
+  }
+  100% {
+    transform: scale(1.08);
+    background: linear-gradient(
+      135deg,
+      #ba55d3 0%,
+      #da70d6 30%,
+      #dda0dd 70%,
+      #c8a2c8 100%
+    );
+    color: white;
+    box-shadow: 0 10px 30px rgba(186, 85, 211, 0.6),
+      0 0 25px rgba(218, 112, 214, 0.5),
+      inset 0 2px 10px rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* ===============================
+   MESSAGGI E FEEDBACK FRASE
+   =============================== */
+
+.message {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-bg) 0%,
+    var(--tertiary-bg) 100%
+  );
+  color: var(--accent-cyan);
+  padding: 0.75rem 1.5rem; /* Ridotto da 1.25rem 2rem */
+  border-radius: var(--border-radius-secondary);
+  margin: 1rem 0; /* Ridotto da 1.5rem 0 */
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem; /* Ridotto da 1.1rem */
+  line-height: 1.4; /* Ridotto da 1.5 */
+  box-shadow: 0 4px 12px var(--border-secondary),
+    0 0 20px rgba(0, 255, 255, 0.1);
+  border: 1px solid var(--border-secondary);
+  text-shadow: 0 0 8px var(--border-primary);
+}

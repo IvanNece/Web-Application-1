@@ -1,4 +1,5 @@
 {
+  "_comment": "CONFIGURAZIONE ROOT: package.json - File dipendenze condivise per monorepo client/server. Contiene dipendenze backend comuni (Express, Passport, SQLite, bcrypt) utilizzate dal server per API REST, autenticazione e persistenza dati.",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

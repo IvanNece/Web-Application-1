@@ -1,0 +1,207 @@
+/**
+ * BASE.CSS - VARIABILI CSS E STILI GLOBALI
+ * 
+ * SCOPO:
+ * Definisce le variabili CSS globali, reset di base e stili condivisi
+ * utilizzati da tutti i componenti del gioco "Indovina la Frase".
+ * Fornisce il tema scuro minimal e le animazioni base.
+ * 
+ * VARIABILI TEMA:
+ * - Colori principali (cyan, magenta, giallo)
+ * - Gradienti background per container
+ * - Ombre e effetti glow
+ * - Dimensioni e spaziature standard
+ * 
+ * ANIMAZIONI GLOBALI:
+ * - borderGlow: animazione bordi container
+ * - pulse: animazione pulsazione elementi
+ * - fadeIn: animazione comparsa elementi
+ * 
+ * UTILIZZATO DA:
+ * Tutti i componenti del gioco che necessitano di variabili CSS
+ * e stili base per mantenere consistenza visiva.
+ */
+
+/* ===============================
+   VARIABILI CSS GLOBALI
+   =============================== */
+
+:root {
+  /* Colori tema scuro */
+  --primary-bg: #0a0a0a;
+  --secondary-bg: #1a0a1a;
+  --tertiary-bg: #0a1a2a;
+
+  /* Colori accent */
+  --accent-cyan: #00ffff;
+  --accent-magenta: #ff00ff;
+  --accent-yellow: #ffff00;
+  --accent-green: #00ff88;
+  --accent-purple: #8a2be2;
+
+  /* Colori testo */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+
+  /* Bordi e ombre */
+  --border-primary: rgba(0, 255, 255, 0.6);
+  --border-secondary: rgba(0, 255, 255, 0.4);
+  --border-subtle: rgba(0, 255, 255, 0.2);
+
+  /* Gradienti background */
+  --gradient-main: linear-gradient(
+    135deg,
+    #0a0a0a 0%,
+    #1a0a1a 50%,
+    #0a1a2a 100%
+  );
+  --gradient-secondary: linear-gradient(
+    135deg,
+    rgba(26, 10, 26, 0.9),
+    rgba(10, 26, 42, 0.8)
+  );
+  --gradient-border: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+
+  /* Ombre */
+  --shadow-main: 0 0 30px rgba(0, 255, 255, 0.3),
+    0 0 60px rgba(255, 0, 255, 0.2);
+  --shadow-inset: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  --shadow-text: 0 0 12px rgba(0, 255, 255, 0.5);
+
+  /* Dimensioni standard */
+  --border-radius-main: 25px;
+  --border-radius-secondary: 15px;
+  --border-radius-small: 8px;
+
+  /* Spaziature */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+/* ===============================
+   ANIMAZIONI GLOBALI
+   =============================== */
+
+/* Animazione glow bordi container */
+@keyframes borderGlow {
+  0% {
+    filter: blur(5px) brightness(1);
+  }
+  100% {
+    filter: blur(8px) brightness(1.5);
+  }
+}
+
+/* Animazione pulsazione generica */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* Animazione fade-in generica */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animazione slide-in da sinistra */
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animazione slide-in da destra */
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===============================
+   UTILITÀ GLOBALI
+   =============================== */
+
+/* Classi utility per layout flex */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Classi utility per testo */
+.text-center {
+  text-align: center;
+}
+
+.text-glow {
+  text-shadow: var(--shadow-text);
+}
+
+/* Classi utility per visibilità */
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+/* Reset minimo per elementi specifici del gioco */
+.game-button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.game-input-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}

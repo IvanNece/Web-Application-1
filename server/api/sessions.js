@@ -2,13 +2,14 @@ import { Router } from 'express';
 import passport from 'passport';
 import { body, validationResult } from 'express-validator';
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// API AUTENTICAZIONE E SESSIONI
+// Gestione login, logout e verifica stato autenticazione utenti
+// ═══════════════════════════════════════════════════════════════════════════════════
+
 const router = Router();
 
-/**
- * POST /api/sessions
- * Login con username e password.
- * Ritorna { id, username, coins } se ok; 401 se credenziali errate; 400 se payload invalido.
- */
+// POST / - Login utente con username e password
 router.post(
   '/',
   [
@@ -27,29 +28,23 @@ router.post(
 
       req.login(user, (err2) => {
         if (err2) return next(err2);
-        // Importante: ritorniamo solo dati necessari (principio "no informazioni non necessarie")
+        // Restituisce solo dati necessari (principio anti-cheat)
         return res.json({ id: user.id, username: user.username, coins: user.coins });
       });
     })(req, res, next);
   }
 );
 
-/**
- * GET /api/sessions/current
- * Stato di autenticazione: ritorna l’utente o 401 se non autenticato.
- */
+// GET /current - Verifica stato autenticazione corrente
 router.get('/current', (req, res) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
-    // req.user proviene da deserializeUser: { id, username, coins }
-    return res.json(req.user);
+    // Dati utente da deserializeUser con monete aggiornate
+    return res.json({ authenticated: true, user: req.user });
   }
-  return res.status(401).json({ error: 'Not authenticated' });
+  return res.json({ authenticated: false });
 });
 
-/**
- * DELETE /api/sessions/current
- * Logout: invalida la sessione.
- */
+// DELETE /current - Logout utente (invalida sessione)
 router.delete('/current', (req, res, next) => {
   req.logout((err) => {
     if (err) return next(err);

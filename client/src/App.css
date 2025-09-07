@@ -1,6 +1,108 @@
+/**
+ * CSS APPLICAZIONE: App.css
+ * 
+ * ════════════════════════════════════════════════════════════════════════════════
+ * FOGLIO STILE PRINCIPALE APPLICAZIONE "INDOVINA LA FRASE"
+ * ════════════════════════════════════════════════════════════════════════════════
+ * 
+ * SCOPO PRINCIPALE:
+ * Definisce il design system completo dell'applicazione con tema scuro moderno,
+ * palette colori accent, tipografia Inter, layout responsive e componenti UI
+ * per tutte le pagine del gioco (home, login, game pages).
+ * 
+ * ARCHITETTURA DESIGN SYSTEM:
+ * 
+ * FONDAZIONI:
+ * - Custom Properties per theming consistente
+ * - Font Inter da Google Fonts per tipografia moderna
+ * - Palette colori con accenti purple/cyan/pink per gaming theme
+ * - Sfondo gradiente scuro con effetti glow subtili
+ * - Reset CSS completo per consistenza cross-browser
+ * 
+ * COMPONENTI UI:
+ * - Card system per contenitori contenuto
+ * - Button system con varianti (primary, logout, guest)
+ * - Input fields con styling gaming theme
+ * - Loading states e error messages
+ * - Icon integration per elementi decorativi
+ * 
+ * LAYOUT SYSTEM:
+ * - Flexbox per centering e alignment
+ * - CSS Grid dove appropriato per layout complessi  
+ * - Responsive design con breakpoints mobile
+ * - Container max-width per desktop readability
+ * 
+ * TEMA VISIVO:
+ * - Dark theme principale per gaming experience
+ * - Accent colors per azioni e stati interattivi
+ * - Glow effects per profondità e modernità
+ * - Transitions smooth per UX fluida
+ * 
+ * SEZIONI ORGANIZZATIVE:
+ * 1. Import fonts e variabili CSS
+ * 2. Reset e base styling
+ * 3. Layout containers principali
+ * 4. Typography system
+ * 5. Component styling (cards, buttons, inputs)
+ * 6. Page-specific styles
+ * 7. Animations e transitions
+ * 8. Responsive breakpoints
+ * 
+ * COMPATIBILITÀ:
+ * - Modern browsers con CSS Custom Properties
+ * - Fallback font system per performance
+ * - Responsive design mobile-first
+ * - Accessibilità con focus states appropriati
+ */
+
+/* SEZIONE: IMPORT FONTS E FONDAZIONI */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * Import Google Fonts Inter per tipografia moderna
+ * 
+ * FONT WEIGHTS INCLUSI:
+ * - 300: Light per testi subtili
+ * - 400: Regular per corpo testo
+ * - 500: Medium per emphasis
+ * - 600: Semi-bold per headings
+ * - 700: Bold per strong emphasis
+ * 
+ * OTTIMIZZAZIONI:
+ * - display=swap per loading performance
+ * - Subset automatico per caratteri utilizzati
+ */
 /* Import di Google Fonts per un look più moderno */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
+/* SEZIONE: CUSTOM PROPERTIES E DESIGN TOKENS */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * CSS Custom Properties per design system consistente
+ * 
+ * BACKGROUND PALETTE:
+ * - primary/secondary/tertiary: Gradazioni scure per layering
+ * - Sfumature progressive per depth e gerarchia visiva
+ * 
+ * TEXT PALETTE:  
+ * - primary: Bianco puro per testi principali
+ * - secondary: Grigio chiaro per testi supporto
+ * - muted: Grigio scuro per informazioni terziarie
+ * 
+ * ACCENT PALETTE:
+ * - purple/cyan/pink: Colori principali gaming theme
+ * - green/red: Stati successo/errore
+ * - orange/blue/yellow: Accenti aggiuntivi per varietà
+ * 
+ * GLOW EFFECTS:
+ * - Versioni semi-trasparenti accent colors per effetti luminosi
+ * - Utilizzati per background radiali e shadow effects
+ * 
+ * BORDER SYSTEM:
+ * - subtle: Bordi discreti per separazione elementi
+ * - accent: Bordi evidenti per focus e highlight
+ */
 /* Reset e variabili CSS */
 :root {
   --bg-primary: #0a0a0b;
@@ -26,6 +128,17 @@
   --card-bg: #ffffff;
 }
 
+/* SEZIONE: CSS RESET E BASE STYLING */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * CSS Reset moderno con box-sizing universale
+ * 
+ * RESET ELEMENTS:
+ * - box-sizing: border-box per sizing predictabile
+ * - margin/padding: 0 per controllo completo spacing
+ * - Eliminazione margin collapsing e spacing inattesi
+ */
 /* Base body styling */
 * {
   box-sizing: border-box;
@@ -33,6 +146,23 @@
   padding: 0;
 }
 
+/**
+ * Body styling con background gradiente e tipografia
+ * 
+ * BACKGROUND DESIGN:
+ * - Gradiente tri-color per depth visiva
+ * - background-attachment: fixed per parallax effect
+ * - Colori progressivi da primary a tertiary
+ * 
+ * TYPOGRAPHY:
+ * - Font family Inter con system fallbacks
+ * - Line height 1.6 per leggibilità ottimale
+ * - Color primary per contrasto massimo
+ * 
+ * LAYOUT:
+ * - overflow-x: hidden per prevenire scroll orizzontale
+ * - Base per full-viewport applications
+ */
 body {
   background: linear-gradient(
     135deg,
@@ -48,6 +178,21 @@ body {
   overflow-x: hidden;
 }
 
+/**
+ * Effetto particelle animate di sfondo
+ * 
+ * DESIGN CONCEPT:
+ * - Pseudoelement ::before per layer aggiuntivo
+ * - Multiple radial gradients per effetti glow
+ * - Posizionamento strategico (20%/80%, 40%/40%)
+ * - Opacity bassa (0.03) per effetto subtile
+ * 
+ * TECHNICAL IMPLEMENTATION:
+ * - position: fixed per coverage completa viewport
+ * - pointer-events: none per non interferire interazioni
+ * - z-index: -1 per posizionamento dietro contenuto
+ * - Tre gradienti radiali con accent colors
+ */
 /* Effetto particelle animate di sfondo */
 body::before {
   content: "";
@@ -68,6 +213,19 @@ body::before {
   z-index: -1;
 }
 
+/* SEZIONE: LAYOUT CONTAINERS PRINCIPALI */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * Root container con centering e max-width
+ * 
+ * LAYOUT STRATEGY:
+ * - max-width 1400px per desktop readability
+ * - margin auto per centering orizzontale
+ * - padding 2rem per breathing space
+ * - min-height 100vh per full coverage verticale
+ * - Flexbox centering per content alignment
+ */
 /* Main container */
 #root {
   max-width: 1400px;
@@ -79,12 +237,29 @@ body::before {
   justify-content: center;
 }
 
+/**
+ * App wrapper con width constraints
+ * 
+ * Contenitore principale applicazione con:
+ * - max-width 900px per content readability
+ * - margin auto per centering
+ * - Full width per responsiveness
+ */
 .App {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
 
+/**
+ * Sistema titolo con icone simmetriche
+ * 
+ * DESIGN PATTERN:
+ * - Flexbox horizontal layout
+ * - center alignment per simmetria
+ * - gap 2rem per spacing uniforme icone/testo
+ * - margin-bottom per separazione da contenuto
+ */
 /* Titolo con icone simmetriche */
 .title-with-icons {
   display: flex;
@@ -94,6 +269,14 @@ body::before {
   margin-bottom: 1rem;
 }
 
+/**
+ * Icone decorative laterali
+ * 
+ * Sizing uniforme per icone game puzzle:
+ * - height 4em per proporzioni corrette con titolo
+ * - padding 0 per eliminare spacing indesiderato
+ * - Utilizzate in HomePage, LoginPage per consistency
+ */
 .logo.game-icon.side-left,
 .logo.game-icon.side-right {
   height: 4em;
@@ -962,3 +1145,161 @@ code {
     text-align: center;
   }
 }
+
+/* ====== MEDIA QUERIES DESKTOP GRANDI ====== */
+
+/* Desktop Large - 1200px+ */
+@media (min-width: 1200px) {
+  .App {
+    max-width: 1100px;
+    padding: 2rem;
+  }
+
+  .title-with-icons {
+    gap: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .title-with-icons h1 {
+    font-size: 3.5rem;
+  }
+
+  .logo.game-icon.side-left,
+  .logo.game-icon.side-right {
+    height: 5em;
+  }
+
+  .home-grid {
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+
+  .home-card {
+    padding: 2.5rem;
+    border-radius: 20px;
+  }
+
+  .home-card h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .home-card p {
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+
+  .home-button {
+    padding: 1rem 2.5rem;
+    font-size: 1.25rem;
+  }
+}
+
+/* Desktop Extra Large - 1440px+ */
+@media (min-width: 1440px) {
+  .App {
+    max-width: 1300px;
+    padding: 2.5rem;
+  }
+
+  .title-with-icons h1 {
+    font-size: 4rem;
+  }
+
+  .logo.game-icon.side-left,
+  .logo.game-icon.side-right {
+    height: 6em;
+  }
+
+  .home-grid {
+    gap: 2.5rem;
+    padding: 3rem 0;
+  }
+
+  .home-card {
+    padding: 3rem;
+  }
+
+  .home-card h2 {
+    font-size: 2rem;
+  }
+}
+
+/* Desktop Ultra Wide - 1920px+ */
+@media (min-width: 1920px) {
+  .App {
+    max-width: 1500px;
+    padding: 3rem;
+  }
+
+  .title-with-icons {
+    gap: 4rem;
+    margin-bottom: 3rem;
+  }
+
+  .title-with-icons h1 {
+    font-size: 4.5rem;
+  }
+
+  .logo.game-icon.side-left,
+  .logo.game-icon.side-right {
+    height: 7em;
+  }
+
+  .home-grid {
+    gap: 3rem;
+    padding: 4rem 0;
+  }
+
+  .home-card {
+    padding: 3.5rem;
+    border-radius: 25px;
+  }
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ * CONTENUTO COMPLETO FOGLIO STILE APPLICAZIONE
+ * ══════════════════════════════════════════════════════════════════════════════
+ * 
+ * SEZIONI INCLUSE:
+ * 
+ * COMPONENTI UI PRINCIPALI:
+ * - Legacy icon styles con floating animations
+ * - Logo containers e positioning
+ * - Typography system (h1, h2, titoli)
+ * - Card containers con glass morphism effects
+ * - Form styling (login container, input fields)
+ * - Button system completo (primary, logout, guest, disabled states)
+ * - Error messages e loading states
+ * - Welcome messages e user info displays
+ * 
+ * ANIMATIONS E INTERACTIONS:
+ * - Keyframes per floating effects icone
+ * - Hover transitions per buttons
+ * - Loading spinners e pulse effects
+ * - Smooth transitions per state changes
+ * 
+ * RESPONSIVE DESIGN:
+ * - Mobile breakpoints (max-width: 768px)
+ * - Tablet adjustments (max-width: 1024px) 
+ * - Desktop optimizations (min-width: 1200px)
+ * - Font scaling per dispositivi
+ * - Spacing adjustments per viewport
+ * 
+ * PAGE-SPECIFIC STYLES:
+ * - HomePage styling (welcome, user dashboard)
+ * - LoginPage styling (form, test accounts)
+ * - GamePage styling (loading, error states)
+ * - Common page elements (headers, footers)
+ * 
+ * TOTAL: 1259 righe di CSS per design system completo
+ * 
+ * NOTE ARCHITETTURALI:
+ * - CSS Custom Properties per theming consistency
+ * - Mobile-first responsive design approach
+ * - Component-based styling organization
+ * - Performance optimized con selettori efficienti
+ * - Accessibility support con focus states appropriati
+ * - Modern CSS features (grid, flexbox, custom properties)
+ */

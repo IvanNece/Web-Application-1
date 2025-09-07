@@ -1,0 +1,329 @@
+/**
+ * VIRTUAL-KEYBOARD.CSS - TASTIERA VIRTUALE E COSTI LETTERE
+ * 
+ * SCOPO:
+ * Stili per la tastiera virtuale interattiva con costi lettere differenziati
+ * e stati visivi. Utilizzato dal componente VirtualKeyboard.jsx per entrambe
+ * le modalità di gioco (autenticata e guest).
+ * 
+ * SEZIONI INCLUSE:
+ * - .virtual-keyboard: Container principale tastiera
+ * - .keyboard-section: Sezioni vocali e consonanti
+ * - .keyboard-key: Singoli tasti con stati e costi
+ * - Animazioni feedback e stati speciali
+ * 
+ * COMPONENTI REACT ASSOCIATI:
+ * - VirtualKeyboard.jsx: Componente principale tastiera
+ * - Game.jsx: Container che utilizza VirtualKeyboard
+ * - GuestGame.jsx: Container che utilizza VirtualKeyboard
+ * 
+ * DIPENDENZE:
+ * Richiede base.css per variabili CSS e animazioni globali.
+ */
+
+/* ===============================
+   CONTAINER TASTIERA VIRTUALE
+   =============================== */
+
+.virtual-keyboard {
+  margin: 0.5rem 0;
+  padding: 0.6rem;
+  background: var(--gradient-secondary);
+  border: 2px solid var(--border-secondary);
+  border-radius: var(--border-radius-secondary);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.virtual-keyboard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-purple),
+    var(--accent-cyan),
+    #ff1493
+  );
+  animation: borderGlow 3s ease-in-out infinite alternate;
+}
+
+.virtual-keyboard > h4 {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  background: linear-gradient(45deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 10px var(--border-secondary);
+}
+
+/* ===============================
+   SEZIONI TASTIERA
+   =============================== */
+
+.keyboard-section {
+  margin-bottom: 0.2rem;
+  padding: 0.25rem 0.4rem;
+  background: rgba(26, 10, 26, 0.4);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.keyboard-section h5 {
+  color: var(--text-primary);
+  font-size: 0.55rem;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 5px var(--border-secondary);
+  white-space: nowrap;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.keyboard-section.vowels h5 {
+  color: var(--accent-purple);
+  text-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+}
+
+.keyboard-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  justify-content: flex-start;
+  align-items: center;
+  flex: 1;
+}
+
+/* ===============================
+   TASTI TASTIERA
+   =============================== */
+
+.keyboard-key {
+  position: relative;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 4px rgba(0, 255, 255, 0.1);
+  outline: none;
+  font-family: "Courier New", monospace;
+  background: rgba(26, 10, 26, 0.6);
+  color: var(--text-primary);
+}
+
+.keyboard-key .letter {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.keyboard-key .cost {
+  font-size: 0.45rem;
+  opacity: 0.8;
+  margin-top: 0.02rem;
+}
+
+/* ===============================
+   STILI VOCALI
+   =============================== */
+
+.keyboard-key.vowel {
+  background: linear-gradient(135deg, var(--accent-purple), #ff1493);
+  color: white;
+  border: 2px solid var(--accent-purple);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 0 15px rgba(138, 43, 226, 0.3);
+}
+
+.keyboard-key.vowel:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(138, 43, 226, 0.5),
+    0 0 20px rgba(138, 43, 226, 0.4);
+  border-color: #ff1493;
+}
+
+.keyboard-key.vowel:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* ===============================
+   STILI CONSONANTI PER COSTO
+   =============================== */
+
+.keyboard-key.consonant.cost-5 {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: 2px solid #c0392b;
+}
+
+.keyboard-key.consonant.cost-4 {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  border: 2px solid #e67e22;
+}
+
+.keyboard-key.consonant.cost-3 {
+  background: linear-gradient(135deg, var(--accent-yellow), #ff8c00);
+  color: white;
+  border: 2px solid #ff8c00;
+}
+
+.keyboard-key.consonant.cost-2 {
+  background: linear-gradient(135deg, var(--accent-cyan), #3498db);
+  color: white;
+  border: 2px solid #3498db;
+}
+
+.keyboard-key.consonant.cost-1 {
+  background: linear-gradient(135deg, var(--accent-green), #27ae60);
+  color: white;
+  border: 2px solid #27ae60;
+}
+
+/* ===============================
+   HOVER EFFECTS CONSONANTI
+   =============================== */
+
+.keyboard-key.consonant.cost-5:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.keyboard-key.consonant.cost-4:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+}
+
+.keyboard-key.consonant.cost-3:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.keyboard-key.consonant.cost-2:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.keyboard-key.consonant.cost-1:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+/* ===============================
+   STATI SPECIALI TASTI
+   =============================== */
+
+.keyboard-key.tried {
+  background: rgba(128, 128, 128, 0.3) !important;
+  color: rgba(128, 128, 128, 0.7) !important;
+  border-color: rgba(128, 128, 128, 0.5) !important;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.keyboard-key.tried::after {
+  content: "✓";
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--accent-green);
+  color: white;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  font-size: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keyboard-key.disabled {
+  background: rgba(128, 128, 128, 0.2) !important;
+  color: rgba(128, 128, 128, 0.6) !important;
+  border-color: rgba(128, 128, 128, 0.3) !important;
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.keyboard-key.no-coins {
+  background: linear-gradient(135deg, #8b0000, #cd5c5c) !important;
+  color: #fff !important;
+  border-color: #8b0000 !important;
+  cursor: not-allowed;
+  animation: noCoinsShake 0.3s ease-in-out;
+}
+
+@keyframes noCoinsShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+/* ===============================
+   INFO E NOTIFICHE TASTIERA
+   =============================== */
+
+.vowel-used-notice {
+  color: var(--accent-green);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.keyboard-info {
+  margin-top: 0.8rem;
+  padding: 0.6rem;
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid var(--accent-yellow);
+  border-radius: var(--border-radius-small);
+}
+
+.cost-warning {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  text-align: center;
+}
+
+.coins-available {
+  text-align: center;
+  color: var(--accent-green);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.coins-available strong {
+  color: var(--accent-cyan);
+  font-size: 1.1rem;
+}

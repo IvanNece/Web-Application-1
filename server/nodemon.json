@@ -1,5 +1,22 @@
 {
-  "watch": ["*.mjs", "api", "auth", "lib"],
+  "_comment": "Configurazione Nodemon per sviluppo server Express",
+  "_description": "Riavvia automaticamente il server quando rileva modifiche nei file sorgente",
+  
+  "watch": [
+    "*.mjs",
+    "api",
+    "auth", 
+    "lib"
+  ],
+  "_watch_comment": "Cartelle e file da monitorare per modifiche",
+  
   "ext": "mjs,js,json",
-  "ignore": ["node_modules", "db/*.db", "db/*.sqlite"]
+  "_ext_comment": "Estensioni file che scatenano il restart",
+  
+  "ignore": [
+    "node_modules",
+    "db/*.db",
+    "db/*.sqlite"
+  ],
+  "_ignore_comment": "File e cartelle da escludere dal monitoraggio (database, dependencies)"
 }

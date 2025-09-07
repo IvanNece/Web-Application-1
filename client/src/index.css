@@ -1,3 +1,62 @@
+/**
+ * CSS GLOBALE BASE: index.css
+ * 
+ * ════════════════════════════════════════════════════════════════════════════════
+ * FOGLIO STILE PRINCIPALE CON RESET, VARIABILI E STILI BASE
+ * ════════════════════════════════════════════════════════════════════════════════
+ * 
+ * SCOPO PRINCIPALE:
+ * Definisce i foundation styles dell'applicazione con CSS reset moderno,
+ * variabili CSS per temi light/dark, tipografia base e stili elementi
+ * HTML fondamentali utilizzati in tutta l'applicazione.
+ * 
+ * FUNZIONALITÀ INCLUSE:
+ * - CSS Custom Properties per theming dinamico
+ * - Reset CSS moderno con best practices browser compatibility
+ * - Sistema font stack ottimizzato per performance e leggibilità
+ * - Color scheme automatico con supporto prefers-color-scheme
+ * - Stili base per elementi HTML (button, a, h1, body)
+ * - Ottimizzazioni rendering per performance e qualità visiva
+ * 
+ * VARIABILI CSS SISTEMA:
+ * - Font family: System fonts con fallback cross-platform
+ * - Color scheme: Supporto automatico light/dark mode
+ * - Typography: Line height e font weight ottimizzati
+ * - Rendering: Anti-aliasing e ottimizzazioni legibility
+ * 
+ * COMPATIBILITÀ:
+ * - Modern browsers con supporto CSS Custom Properties
+ * - Fallback automatici per font system
+ * - Media queries per preferenze utente (light/dark)
+ * - Accessibilità con focus ring visibili
+ */
+
+/* SEZIONE: VARIABILI GLOBALI E ROOT STYLES */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * Root element configuration con CSS Custom Properties
+ * 
+ * FONT SYSTEM:
+ * - system-ui: Font sistema operativo nativo (performance)
+ * - Avenir: Font premium su macOS (se disponibile)
+ * - Helvetica/Arial: Fallback sicuri cross-platform
+ * - sans-serif: Fallback finale generico
+ * 
+ * TIPOGRAFIA:
+ * - line-height 1.5: Leggibilità ottimale per testi multilinea
+ * - font-weight 400: Peso normale, non bold default
+ * 
+ * COLOR SCHEME:
+ * - light dark: Supporta entrambi i temi automaticamente
+ * - Background scuro per ridurre affaticamento visivo
+ * - Colore testo con trasparenza per profondità visiva
+ * 
+ * RENDERING OPTIMIZATIONS:
+ * - font-synthesis none: Disabilita sintesi artificiale font
+ * - text-rendering optimizeLegibility: Priorità leggibilità su velocità
+ * - webkit/moz-font-smoothing: Anti-aliasing per font più puliti
+ */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -13,6 +72,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* SEZIONE: STILI ELEMENTI BASE */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * Link styling con stati hover
+ * 
+ * DESIGN:
+ * - Peso semi-bold per visibilità
+ * - Colore accent blu per riconoscibilità
+ * - Nessuna decorazione default (clean)
+ * - Hover state per feedback interazione
+ */
 a {
   font-weight: 500;
   color: #646cff;
@@ -22,6 +93,18 @@ a:hover {
   color: #535bf2;
 }
 
+/**
+ * Body layout e constraints
+ * 
+ * LAYOUT:
+ * - Margin zero per reset browser default
+ * - Flexbox centering per applicazione full-viewport
+ * - place-items center: Centering sia orizontale che verticale
+ * 
+ * CONSTRAINTS:
+ * - min-width 320px: Supporto dispositivi mobile più piccoli
+ * - min-height 100vh: Full viewport height per app centrata
+ */
 body {
   margin: 0;
   display: flex;
@@ -30,11 +113,36 @@ body {
   min-height: 100vh;
 }
 
+/**
+ * Heading principale sizing
+ * 
+ * Tipografia per titoli principali con sizing responsive
+ * e line-height ottimizzato per titoli multilinea.
+ */
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
 
+/**
+ * Button styling base con stati interattivi
+ * 
+ * DESIGN FOUNDATION:
+ * - Border radius per modern appearance
+ * - Padding bilanciato per touch targets adeguati
+ * - Font inherit per consistenza tipografica
+ * - Background scuro per tema dark default
+ * 
+ * INTERAZIONI:
+ * - Cursor pointer per feedback interazione
+ * - Transition border per smooth hover effects
+ * - Focus ring per accessibilità keyboard navigation
+ * 
+ * ACCESSIBILITÀ:
+ * - Focus visible outline per screen readers
+ * - Color contrast appropriato per leggibilità
+ * - Touch target size adeguato per dispositivi touch
+ */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -54,6 +162,26 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* SEZIONE: LIGHT MODE OVERRIDES */
+/*═══════════════════════════════════════════════════════════════════════════════*/
+
+/**
+ * Tema light mode con media query
+ * 
+ * ATTIVAZIONE:
+ * - Media query prefers-color-scheme: light
+ * - Override automatico quando utente preferisce tema chiaro
+ * 
+ * MODIFICHE LIGHT MODE:
+ * - Background bianco per ridurre contrasto
+ * - Colore testo scuro per leggibilità su sfondo chiaro
+ * - Link hover più intenso per visibilità
+ * - Button background chiaro per consistenza tema
+ * 
+ * ACCESSIBILITÀ:
+ * - Contrasto colori ottimizzato per tema light
+ * - Mantenimento leggibilità in entrambi i temi
+ */
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

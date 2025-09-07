@@ -1,13 +1,28 @@
-import { get, all } from './lib/db.js';
+/*
+ * ========================================
+ * DEBUG: SISTEMA MONETE E TRANSAZIONI
+ * ========================================
+ * 
+ * Analizza lo stato attuale del sistema di monete nel database
+ * Mostra bilanci utenti, storico partite e transazioni monete
+ * Utile per debugging problemi di calcolo monete
+ */
+
+import { get, all } from '../lib/db.js';
 
 console.log('=== STATO ATTUALE DATABASE ===\n');
 
-// Controllo utenti
-console.log('📋 UTENTI:');
+// ==========================================
+// CONTROLLO BILANCI UTENTI
+// ==========================================
+console.log('UTENTI:');
 const users = await all('SELECT id, username, coins FROM users ORDER BY id');
 users.forEach(u => console.log(`  ${u.id}: ${u.username} -> ${u.coins} monete`));
 
-console.log('\n🎮 ULTIME 10 PARTITE:');
+// ==========================================
+// STORICO PARTITE RECENTI
+// ==========================================
+console.log('\nULTIME 10 PARTITE:');
 const games = await all(`
   SELECT g.id, g.userId, u.username, g.status, g.coinsSpent, g.coinsDelta, g.startedAt 
   FROM games g 
@@ -20,7 +35,10 @@ games.forEach(g => {
   console.log(`  Game ${g.id}: ${g.username} | ${g.status} | Spesi: ${g.coinsSpent} | Delta: ${g.coinsDelta} | ${date}`);
 });
 
-console.log('\n💰 TRANSAZIONI MONETE (ultime 5 partite):');
+// ==========================================
+// ANALISI TRANSAZIONI MONETE
+// ==========================================
+console.log('\nTRANSAZIONI MONETE (ultime 5 partite):');
 const transactions = await all(`
   SELECT 
     g.id as gameId, 

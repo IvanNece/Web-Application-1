@@ -1,13 +1,28 @@
+/*
+ * ========================================
+ * TEST: RESPONSIVE DESIGN AUTOMATICO
+ * ========================================
+ * 
+ * Analizza automaticamente i file CSS per verificare responsive design
+ * Controlla media queries, breakpoint e classi responsive
+ * Genera report su compatibilità desktop e mobile
+ */
+
 import fs from 'fs';
 import path from 'path';
 
-console.log('🖥️ TEST RESPONSIVE DESKTOP AUTOMATICO\n');
+console.log('TEST RESPONSIVE DESKTOP AUTOMATICO\n');
 
-// Analizza i file CSS per le media queries
+// ==========================================
+// CONFIGURAZIONE PERCORSI
+// ==========================================
 const clientPath = path.join(process.cwd(), '..', 'client', 'src');
 const cssFiles = ['Game.css', 'App.css', 'index.css'];
 
-console.log('📊 ANALISI MEDIA QUERIES:');
+// ==========================================
+// ANALISI MEDIA QUERIES
+// ==========================================
+console.log('ANALISI MEDIA QUERIES:');
 let totalMediaQueries = 0;
 let desktopQueries = 0;
 let mobileQueries = 0;
@@ -28,7 +43,7 @@ for (const file of cssFiles) {
       
       totalMediaQueries++;
       if (query.includes('max-width')) mobileQueries++;
-      if (query.includes('min-width') && query.includes('1024px')) desktopQueries++;
+      if (query.includes('min-width') && (query.includes('1200px') || query.includes('1440px') || query.includes('1920px'))) desktopQueries++;
     });
   } else {
     console.log(`⚠️  ${file} non trovato`);
