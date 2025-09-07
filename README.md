@@ -1,101 +1,200 @@
-# Exam #3: "Indovina la Frase"
+# Esame #3: "Indovina la Frase"
 ## Student: s345147 NECERINI IVAN 
 
-## Requisiti di Sistema
+> 📋 **Documentazione Completa del Progetto**  
+> Per informazioni dettagliate sui singoli componenti, consulta i README specifici:
+> - 🖥️ **[Server Backend](./server/README.md)** - API, Database, Autenticazione, Validazione
+> - ⚛️ **[Client Frontend](./client/README.md)** - React SPA, Components, Routes, Hooks
 
-- Node.js 22.x (LTS)
-- npm
-- nodemon (installato globalmente): `npm install -g nodemon`
+---
 
-⚠️ **IMPORTANTE**: Se nodemon non è installato globalmente, il comando `nodemon index.mjs` fallirà. In tal caso, usare `npm run dev` dalla directory server che utilizza la versione locale di nodemon.
+## 📱 Screenshot dell'Applicazione
 
-## Installazione e Avvio
+### Partita in Corso - Modalità Giocatore Autenticato
+![Gioco - Parte 1](./images/auth1.png)
+![Gioco - Parte 2](./images/auth2.png)
 
-1. **Installare le dipendenze**:
+*Interfaccia completa del gioco per utenti registrati: timer countdown 60s, saldo monete utente, tastiera virtuale con costi differenziati (consonanti 1 moneta, vocali 5 monete), frase da indovinare con lettere progressivamente rivelate, controlli per tentativo frase completa e sistema di feedback in tempo reale.*
+
+---
+
+## ⚙️ Installazione e Avvio
+
+### Prerequisiti di Sistema
+- **Node.js 22.x** (versione LTS)
+- **npm** (incluso con Node.js)
+- **nodemon** (per sviluppo): `npm install -g nodemon`
+
+⚠️ **IMPORTANTE**: Se nodemon non è installato globalmente, il comando `nodemon index.mjs` fallirà. In tal caso, usare `npm run dev` dalla directory server.
+
+### Setup Completo del Progetto
+
+1. **Installare le dipendenze per entrambi i componenti:**
    ```bash
+   # Server backend
    cd server
    npm install
-   cd ../client  
+   
+   # Client frontend  
+   cd ../client
    npm install
    ```
 
-2. **Inizializzare il database**:
+2. **Inizializzare il database SQLite:**
    ```bash
    cd server
    npm run initdb
    ```
 
-3. **Avviare l'applicazione** (come richiesto dalle specifiche):
+3. **Avviare l'applicazione completa** (2 terminali necessari):
    ```bash
-   # Terminal 1 - Server
+   # Terminal 1 - Avvio Server Backend (porta 3001)
    cd server
    nodemon index.mjs
    
-   # Terminal 2 - Client  
+   # Terminal 2 - Avvio Client React (porta 5173)
    cd client
    npm run dev
    ```
 
-## React Client Application Routes
+4. **Accesso all'applicazione:**
+   - **Frontend:** `http://localhost:5173`
+   - **API Server:** `http://localhost:3001`
 
-- Route `/`: Homepage con opzioni di gioco (autenticato/guest) e logout
-- Route `/login`: Pagina di login per utenti registrati
-- Route `/game`: Gioco autenticato con sistema monete e timer
-- Route `/guest`: Gioco ospite senza registrazione (3 frasi dedicate)
+---
 
-## API Server
+## 👤 Credenziali Utenti di Test
 
-### Autenticazione
-- POST `/api/sessions` - Login con username/password
-- GET `/api/sessions/current` - Verifica stato autenticazione
-- DELETE `/api/sessions/current` - Logout
+Il database viene inizializzato con utenti predefiniti per testing:
 
-### Giochi Autenticati  
-- POST `/api/games` - Crea nuova partita (costo 10 monete)
-- GET `/api/games/:gameId` - Stato partita corrente
-- POST `/api/games/:gameId/guess-letter` - Indovina lettera
-- POST `/api/games/:gameId/guess-phrase` - Indovina frase
-- POST `/api/games/:gameId/abandon` - Abbandona partita
+| Username | Password | Monete | Descrizione |
+|----------|----------|--------|-------------|
+| **novice** | NoviceUser123! | 100 | Utente nuovo senza partite giocate |
+| **empty** | EmptyCoins456@ | 0 | Utente senza monete per testare limitazioni |
+| **player** | PlayerGame789# | 180 | Utente esperto con storico partite |
 
-### Giochi Guest
-- POST `/api/guest/games` - Crea partita guest (gratuita)
-- GET `/api/guest/games/:gameId` - Stato partita guest
-- POST `/api/guest/games/:gameId/guess-letter` - Indovina lettera guest
-- POST `/api/guest/games/:gameId/guess-phrase` - Indovina frase guest
-- POST `/api/guest/games/:gameId/abandon` - Abbandona partita guest
+---
 
-### Metadati
-- GET `/api/meta/phrases/count` - Conteggio frasi per modalità
+## 🎮 Modalità di Gioco
 
-## Database Tables
+### 🔐 Modalità Autenticata
+- **Costo partita:** 10 monete iniziali
+- **Costo lettere:** Consonanti 1 moneta, Vocali 5 monete
+- **Premio vittoria:** +100 monete
+- **Timer:** 60 secondi per partita
+- **Frasi:** Pool dedicato per utenti registrati
 
-- Table `users` - contiene id, username, password_hash (bcrypt), coins
-- Table `phrases` - contiene id, text, mode ('auth'|'guest')
-- Table `games` - contiene userId, phraseId, status, timer, monete spese/guadagnate
-- Table `game_letters` - contiene gameId, letter, isCorrect per tracking lettere
+### 👤 Modalità Guest (Ospite)
+- **Accesso:** Gratuito senza registrazione
+- **Costo lettere:** Nessun costo
+- **Limitazioni:** Nessun premio in monete
+- **Timer:** 60 secondi identico alla modalità auth
+- **Frasi:** Pool dedicato (3 frasi specifiche)
 
-## Main React Components
+---
 
-- `Game` (in `Game.jsx`): Componente principale per giochi autenticati con gestione monete e timer
-- `GuestGame` (in `GuestGame.jsx`): Componente per giochi ospite senza registrazione
-- `VirtualKeyboard` (in `VirtualKeyboard.jsx`): Tastiera virtuale per input lettere
-- `GameHeader` (in `GameHeader.jsx`): Header con informazioni utente e stato gioco
-- `PhraseDisplay` (in `PhraseDisplay.jsx`): Visualizzazione frase con lettere rivelate
-- `GameControls` (in `GameControls.jsx`): Controlli per input lettere e frasi
-- `FeedbackSystem` (in `FeedbackSystem.jsx`): Sistema notifiche e feedback utente
+## 🏗️ Architettura del Sistema
 
-## Custom Hooks
+### Pattern "Dual Server" - Separazione Frontend/Backend
 
-- `useGameLogic`: Logica condivisa per gestione stato gioco
-- `useApiCalls`: Centralizzazione chiamate API per entrambe le modalità  
-- `useGameTimer`: Gestione timer partita con notifiche automatiche
+Il progetto adotta un'architettura a **due server separati e indipendenti**:
 
-## Screenshot
+```
+┌─────────────────────────────────────┐
+│           CLIENT FRONTEND           │
+│         React SPA Vite              │
+│       http://localhost:5173         │
+├─────────────────────────────────────┤
+│ • React 19 + React Router 7         │
+│ • Vite dev server (HMR)             │
+│ • Component-based UI                │
+│ • Custom Hooks per logica           │
+│ • CSS modulari per stili            │
+│ • Gestione stato locale             │
+└─────────────────────────────────────┘
+                    │
+                    │ HTTP REST API
+                    │ fetch() with
+                    │ cookie credentials
+                    ▼
+┌─────────────────────────────────────┐
+│           SERVER BACKEND            │
+│         Express REST API            │
+│       http://localhost:3001         │
+├─────────────────────────────────────┤
+│ • Node.js 22 + Express 4.18         │
+│ • SQLite Database                   │
+│ • Passport.js Authentication        │
+│ • Express-validator                 │
+│ • bcryptjs Password Hashing         │
+│ • Cookie-based Sessions             │
+│ • CORS configurato                  │
+└─────────────────────────────────────┘
 
-![Screenshot](./img/screenshot.jpg)
+• Frontend serve SOLO l'interfaccia utente React
+• Backend espone SOLO le API REST per dati e logica business  
+• Comunicazione tramite fetch() con credentials per cookie di sessione
+• Nessuna commistione: client non conosce database, server non serve HTML
+```
 
-## Users Credentials
+### Stack Tecnologico
 
-- **novice** / NoviceUser123! (100 monete - nessuna partita giocata)
-- **empty** / EmptyCoins456@ (0 monete - senza fondi) 
-- **player** / PlayerGame789# (180 monete - con storico partite)
+**Frontend (Client):**
+- React 19.1.0 + React Router 7.8.2
+- Vite 6.3.5 (build tool e dev server)
+- Component-based architecture con Custom Hooks
+- Styling modulare con CSS separati
+
+**Backend (Server):**
+- Node.js 22.x + Express 4.18.2
+- SQLite database con file `.db`
+- Passport.js per autenticazione cookie-based
+- Express-validator per validazione input
+- bcryptjs per hashing password
+
+---
+
+## 📊 Database Schema
+
+### Tabelle Principali
+- **`users`** - Utenti, password hash, saldo monete
+- **`phrases`** - Frasi del gioco (modalità auth/guest)
+- **`games`** - Partite con stato, timer, costi/guadagni
+- **`game_letters`** - Tracking lettere tentate per partita
+
+---
+
+## 🛡️ Sicurezza Implementata
+
+- **Autenticazione:** Cookie HTTP-only con sessioni Express
+- **Password:** Hash bcrypt con salt automatico
+- **Validazione:** Input sanitization server-side
+- **Segregazione:** Utenti possono accedere solo ai propri dati
+- **Rate limiting:** Protezione API da abuse
+
+---
+
+## 📁 Struttura Repository
+
+```
+esame3-indovina-frase-IvanNece/
+├── README.md                    # Overview generale progetto
+├── package.json                 # Dipendenze root (se presenti)
+├── package-lock.json            # Lock file dipendenze root
+├── images/                      # Screenshot applicazione
+│   ├── auth1.png
+│   └── auth2.png
+├── client/                      # Frontend React SPA
+│   ├── README.md
+│   ├── package.json
+│   └── [src, public, config...]
+└── server/                      # Backend Express API
+    ├── README.md  
+    ├── package.json
+    └── [api, db, auth, lib...]
+```
+
+---
+
+**Progetto realizzato per l'esame di Applicazioni Web I**  
+**Politecnico di Torino - A.A. 2024/25**
