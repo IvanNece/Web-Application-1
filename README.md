@@ -14,8 +14,6 @@
 ![Gioco - Parte 1](./images/auth1.png)
 ![Gioco - Parte 2](./images/auth2.png)
 
-*Interfaccia completa del gioco per utenti registrati: timer countdown 60s, saldo monete utente, tastiera virtuale con costi differenziati (consonanti 1 moneta, vocali 5 monete), frase da indovinare con lettere progressivamente rivelate, controlli per tentativo frase completa e sistema di feedback in tempo reale.*
-
 ---
 
 ## ⚙️ Installazione e Avvio

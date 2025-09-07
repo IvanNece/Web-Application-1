@@ -395,67 +395,24 @@ Verifica disponibilità server.
 ## 📋 Schema Tabelle
 
 ### `users` — Utenti Registrati
-```sql
-CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  coins INTEGER NOT NULL DEFAULT 100 CHECK (coins >= 0)
-);
-```
-**Scopo:** Gestione utenti autenticati con sistema monete  
-**Utilizzo:** Autenticazione Passport, aggiornamento monete automatico  
-**Validazione:** Username univoco, password hash bcrypt, monete non negative
+**Campi principali:** `id`, `username` (univoco), `password_hash` (bcrypt), `coins` (≥0)  
+**Scopo:** Gestione utenti autenticati con sistema monete integrato  
+**Validazione:** Username univoco, password hash sicuro, saldo non negativo
 
 ### `phrases` — Frasi del Gioco
-```sql
-CREATE TABLE phrases (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  text TEXT NOT NULL,
-  mode TEXT NOT NULL CHECK (mode IN ('auth','guest')),
-  CHECK (length(text) BETWEEN 30 AND 50)
-);
-```
-**Scopo:** Pool frasi separate per modalità autenticata/ospite  
-**Contenuto:** 30 frasi motivazionali `auth` + 3 frasi semplificate `guest`  
-**Vincoli:** Solo lettere A-Z e spazi, lunghezza 30-50 caratteri
+**Campi principali:** `id`, `text` (30-50 caratteri), `mode` ('auth'/'guest')  
+**Contenuto:** 30 frasi motivazionali per modalità autenticata + 3 semplificate per ospiti  
+**Vincoli:** Solo lettere A-Z e spazi, lunghezza controllata
 
 ### `games` — Partite
-```sql
-CREATE TABLE games (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  userId INTEGER NULL,                     -- FK users.id (NULL = guest)
-  phraseId INTEGER NOT NULL,               -- FK phrases.id
-  status TEXT NOT NULL CHECK (status IN ('running','won','timeout','abandoned')),
-  startedAt INTEGER NOT NULL,              -- Timestamp inizio (ms)
-  expiresAt INTEGER NOT NULL,              -- Timestamp scadenza (ms)
-  hasUsedVowel INTEGER NOT NULL DEFAULT 0 CHECK (hasUsedVowel IN (0,1)),
-  coinsSpent INTEGER NOT NULL DEFAULT 0,
-  coinsDelta INTEGER NOT NULL DEFAULT 0,   -- Variazione finale monete
-  FOREIGN KEY (userId) REFERENCES users(id),
-  FOREIGN KEY (phraseId) REFERENCES phrases(id)
-);
-```
-**Scopo:** Tracciamento partite con timer e gestione monete  
-**Timer:** `expiresAt = startedAt + 60000ms` (60 secondi)  
-**Monete:** `coinsDelta` positivo per vittorie (+100), negativo per timeout (-20)
+**Campi principali:** `id`, `userId` (FK users, NULL=guest), `phraseId` (FK phrases), `status`, `startedAt`, `expiresAt`, `hasUsedVowel`, `coinsSpent`, `coinsDelta`  
+**Timer:** 60 secondi automatici (`expiresAt = startedAt + 60000ms`)  
+**Monete:** Traccia spese partita e variazione finale (+100 vittoria, -20 timeout)
 
 ### `game_letters` — Lettere Tentate
-```sql
-CREATE TABLE game_letters (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  gameId INTEGER NOT NULL,                 -- FK games.id
-  letter TEXT NOT NULL CHECK (length(letter)=1 AND letter BETWEEN 'A' AND 'Z'),
-  wasHit INTEGER NOT NULL CHECK (wasHit IN (0,1)),
-  costApplied INTEGER NOT NULL,
-  createdAt INTEGER NOT NULL,
-  FOREIGN KEY (gameId) REFERENCES games(id),
-  UNIQUE(gameId, letter)                   -- Impedisce tentativi duplicati
-);
-```
-**Scopo:** Storia completa tentativi con costi effettivi  
-**Costi:** Include miss penalty e gestione saldi insufficienti  
-**Protezione:** Una lettera per partita, no acquisti duplicati
+**Campi principali:** `id`, `gameId` (FK games), `letter` (A-Z), `wasHit` (0/1), `costApplied`, `createdAt`  
+**Protezione:** Constraint UNIQUE(gameId, letter) impedisce acquisti duplicati  
+**Audit:** Storia completa con costi effettivi e miss penalty applicati
 
 ---
 
@@ -559,6 +516,9 @@ body('attempt')
 ---
 
 # 🚦 Gestione Errori & Codici HTTP
+
+> 📚 **Per informazioni complete su testing, metodologie e architettura del sistema di validazione:**  
+> **[🧪 TESTING_GUIDE.md](tests/TESTING_GUIDE.md)** - Guida completa al sistema di testing
 
 ## Mappatura Errori Standard
 
@@ -749,10 +709,8 @@ const response = await fetch('http://localhost:3001/api/games', {
 ---
 
 ## Testing
-La cartella `tests/` contiene guide complete:
-- **`TESTING_COMPLETE_GUIDE.md`** — Guida testing completa
-- **`ERROR_CODES_GUIDE.md`** — Mappatura errori dettagliata
-- **`TEST_SUITE_GUIDE.md`** — Suite di test automatizzati
+La cartella `tests/` contiene:
+- **[🧪 TESTING_GUIDE.md](tests/TESTING_GUIDE.md)** — Guida completa al sistema di testing, codici errore e metodologie di validazione
 
 ---
 
