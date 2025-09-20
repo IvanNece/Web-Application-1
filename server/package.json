@@ -1,21 +1,14 @@
 {
-  "_comment": "CONFIGURAZIONE SERVER: package.json - Definisce metadata, dipendenze e script per server Express.js backend. Gestisce API REST, autenticazione Passport.js, database SQLite, sessioni sicure. Scripts: 'dev' per sviluppo con nodemon, 'initdb' per setup database.",
   "name": "server",
   "version": "0.1.0",
   "description": "Server Express per il gioco 'Indovina la Frase' - API REST con autenticazione Passport.js e database SQLite",
   "type": "module",
   "main": "index.mjs",
-  "_main_comment": "Entry point del server Express",
   
   "scripts": {
     "dev": "nodemon index.mjs",
-    "_dev_comment": "Avvia server in modalità sviluppo con auto-restart",
-    
     "initdb": "node ./scripts/initdb.mjs",
-    "_initdb_comment": "Inizializza database con schema, seed data e utenti di test",
-    
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "_test_comment": "Placeholder per test automatizzati (attualmente non implementati)"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   
   "author": "Studente AW1",
@@ -23,35 +16,17 @@
   
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "_bcryptjs_comment": "Hash sicuro delle password utenti",
-    
     "cors": "^2.8.5", 
-    "_cors_comment": "Cross-Origin Resource Sharing per comunicazione client-server",
-    
     "express": "^4.21.2",
-    "_express_comment": "Framework web Node.js per API REST",
-    
     "express-session": "^1.18.2",
-    "_session_comment": "Gestione sessioni utente basate su cookie",
-    
     "express-validator": "^7.2.1",
-    "_validator_comment": "Validazione e sanitizzazione input delle richieste",
-    
     "morgan": "^1.10.1",
-    "_morgan_comment": "Logging delle richieste HTTP per debugging",
-    
     "passport": "^0.7.0",
-    "_passport_comment": "Framework di autenticazione per Node.js",
-    
     "passport-local": "^1.0.0", 
-    "_passport_local_comment": "Strategia autenticazione locale (username/password)",
-    
-    "sqlite3": "^5.1.7",
-    "_sqlite3_comment": "Database SQLite per persistenza dati"
+    "sqlite3": "^5.1.7"
   },
   
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "_nodemon_comment": "Auto-restart del server durante sviluppo"
+    "nodemon": "^3.1.10"
   }
 }

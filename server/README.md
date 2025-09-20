@@ -30,8 +30,6 @@ npm run initdb
 
 # 4. Avvia server in modalità sviluppo
 nodemon index.mjs
-# OPPURE usando npm script:
-npm run dev
 ```
 
 **Server attivo su:** `http://localhost:3001`  
@@ -111,7 +109,6 @@ server/
 - **Architettura "Due Server"**: Client React (5173) ↔ API Server (3001)
 - **RESTful API Design**: Endpoints semantici, verbi HTTP appropriati
 - **Session-based Auth**: Cookie HttpOnly, SameSite=Lax, Secure in prod
-- **Repository Pattern**: Astrazione database con transazioni
 
 ---
 
@@ -121,268 +118,1032 @@ server/
 > - Tutte le risposte sono in formato **JSON**
 > - Timestamp in **millisecondi** (`timeLeft`, `startedAt`, `expiresAt`)
 > - Rotte autenticate richiedono **cookie di sessione valido**
-> - Gestione errori consistente con codici HTTP semantici
+> - Headers richiesti: `Content-Type: application/json` per POST requests
 > - **Validazione rigorosa**: tutti gli input vengono validati con express-validator
 > - **Sanitizzazione automatica**: prevenzione XSS e SQL injection
 > - **Rate limiting**: protezione contro spam e attacchi DoS
+> - **Errori 500**: Tutte le API possono restituire `500 Internal Server Error` per errori server non gestiti
 
 ---
 
 ## 🔐 Sessioni & Autenticazione
 
-### `POST /api/sessions` — Login
-Autentica un utente e crea una sessione sicura.
+### `POST /api/sessions` — Login Utente
+Autentica un utente e crea una sessione sicura con cookie HttpOnly.
 
-**Request:**
-```json
-{ "username": "novice", "password": "NoviceUser123!" }
-```
+**Endpoint:** `POST /api/sessions`  
+**Auth:** Non richiesta  
+**Content-Type:** `application/json`
 
-**Response 200:**
-```json
-{ "id": 1, "username": "novice", "coins": 100 }
-```
-*Imposta automaticamente cookie di sessione HttpOnly*
-
-**Validazione:**
-- Username: stringa non vuota, max 50 caratteri, solo caratteri alfanumerici
-- Password: stringa non vuota, min 8 caratteri
-
-**Errori:** 400 (input), 401 (credenziali), 500 (server)
-
----
-
-### `GET /api/sessions/current` — Stato Sessione
-Verifica autenticazione e restituisce dati utente correnti.
-
-**Response (Autenticato):**
+**Request Body:**
 ```json
 {
-  "authenticated": true,
-  "user": { "id": 1, "username": "novice", "coins": 95 }
+  "username": "novice",
+  "password": "NoviceUser123!"
 }
 ```
 
-**Response (Non autenticato):**
+**Request Schema:**
+- `username` (string, required): Nome utente, minimo 1 carattere
+- `password` (string, required): Password utente, minimo 1 carattere
+
+**Response 200 - Success:**
 ```json
-{ "authenticated": false }
+{
+  "id": 1,
+  "username": "novice", 
+  "coins": 100
+}
+```
+*Imposta automaticamente cookie di sessione `aw1.sid` HttpOnly*
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid payload",
+  "details": [
+    { "msg": "username required", "param": "username" },
+    { "msg": "password required", "param": "password" }
+  ]
+}
+```
+
+**Response 401 - Unauthorized:**
+```json
+{
+  "error": "Credenziali non valide"
+}
+```
+
+**Possibili Errori di Validazione:**
+- Username vuoto
+- Password vuota
+- Credenziali errate
+- Utente non esistente
+
+---
+
+### `GET /api/sessions/current` — Verifica Stato Sessione
+Controlla se l'utente è attualmente autenticato e restituisce i suoi dati.
+
+**Endpoint:** `GET /api/sessions/current`  
+**Auth:** Non richiesta (verifica sessione)  
+**Query Parameters:** Nessuno
+
+**Response 200 - Utente Autenticato:**
+```json
+{
+  "authenticated": true,
+  "user": {
+    "id": 1,
+    "username": "novice",
+    "coins": 95
+  }
+}
+```
+
+**Response 200 - Utente Non Autenticato:**
+```json
+{
+  "authenticated": false
+}
 ```
 
 ---
 
-### `DELETE /api/sessions/current` — Logout
-Invalida sessione corrente e rimuove cookie.
+### `DELETE /api/sessions/current` — Logout Utente
+Invalida la sessione corrente e rimuove il cookie di autenticazione.
 
-**Response:** `204 No Content`
+**Endpoint:** `DELETE /api/sessions/current`  
+**Auth:** Cookie di sessione  
+**Body:** Nessuno
+
+**Response 204 - No Content:**
+*Nessun body di risposta, cookie rimosso*
 
 ---
 
 ## 🎮 Partite — Utenti Autenticati (`/api/games`)
 
-> **Regole Monete:**
-> - Vocali: 10 monete (max 1 per partita) | Consonanti: 1-5 monete per frequenza
-> - Miss penalty: costo raddoppiato | Vittoria: +100 | Timeout: -20 | Abbandono: 0
+> **Regole Sistema Monete:**
+> - **Costo lettere:** Vocali 10 monete (max 1), Consonanti 1-5 monete per frequenza
+> - **Penalità miss:** Costo raddoppiato per lettere sbagliate
+> - **Premi:** +100 monete per vittoria, -20 monete per timeout, 0 per abbandono
 
-### Sistema Costi Lettere
+### Sistema Costi Lettere Intelligente
 ```javascript
-// Vocali (10 monete, max 1 per partita)
-VOCALI: A, E, I, O, U → 10 monete
+// Vocali (10 monete base, max 1 per partita)
+VOCALI: A, E, I, O, U → 10 monete base
 
-// Consonanti per frequenza (costo base + raddoppio se miss)
-COSTO 5: T, N, H, S     // Più frequenti
+// Consonanti per frequenza linguistica (costo base + raddoppio se miss)
+COSTO 5: T, N, H, S     // Lettere più frequenti
 COSTO 4: R, L, D, C     // Alta frequenza  
 COSTO 3: M, W, Y, F     // Media frequenza
 COSTO 2: G, P, B, V     // Bassa frequenza
 COSTO 1: K, J, X, Q, Z  // Lettere rare
+
+// Esempi calcolo finale:
+// Lettera T presente: 5 monete
+// Lettera T assente: 10 monete (5 × 2)
+// Vocale A presente: 10 monete  
+// Vocale A assente: 20 monete (10 × 2)
 ```
 
 ---
 
-### `POST /api/games` — Crea Partita
-**Auth:** Richiesta | **Prerequisito:** Almeno 1 moneta
+### `POST /api/games` — Crea Nuova Partita
+Crea una nuova partita per l'utente autenticato con frase casuale.
 
-**Response 201:**
+**Endpoint:** `POST /api/games`  
+**Auth:** Cookie di sessione richiesto  
+**Content-Type:** `application/json`  
+**Body:** Nessuno
+
+**Prerequisiti:**
+- Utente autenticato con sessione valida
+- Saldo minimo: 1 moneta (per permettere almeno un tentativo)
+
+**Response 201 - Created:**
 ```json
 {
-  "gameId": 123, "status": "running", "phraseLength": 42,
-  "spaces": [8, 14, 26, 35], "revealed": [], "revealedLetters": {},
-  "hasUsedVowel": false, "timeLeft": 60000, "coins": 95
+  "gameId": 123,
+  "status": "running",
+  "phraseLength": 42,
+  "spaces": [8, 14, 26, 35],
+  "revealed": [],
+  "revealedLetters": {},
+  "hasUsedVowel": false,
+  "timeLeft": 60000,
+  "coins": 95
 }
 ```
 
-**Validazione:** Controllo automatico saldo monete utente
-**Errori:** 403 (monete insufficienti), 500 (creazione)
+**Response Schema:**
+- `gameId` (number): ID univoco partita creata
+- `status` (string): Stato partita, sempre "running" alla creazione
+- `phraseLength` (number): Lunghezza totale frase in caratteri
+- `spaces` (array): Indici posizioni spazi nella frase
+- `revealed` (array): Indici lettere rivelate (vuoto all'inizio)
+- `revealedLetters` (object): Mappa posizione → lettera (vuoto all'inizio)
+- `hasUsedVowel` (boolean): Flag uso vocale (false all'inizio)
+- `timeLeft` (number): Millisecondi rimanenti (60000 = 60s)
+- `coins` (number): Saldo monete aggiornato dell'utente
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "💸 Non hai abbastanza monete per iniziare una partita! 🎮"
+}
+```
 
 ---
 
-### `GET /api/games/:id` — Stato Partita
-**Auth:** Richiesta + Ownership
+### `GET /api/games/:id` — Recupera Stato Partita
+Restituisce lo stato attuale di una partita specifica dell'utente.
 
-**Response (In corso):**
+**Endpoint:** `GET /api/games/:id`  
+**Auth:** Cookie di sessione richiesto  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita
+
+**Response 200 - Partita In Corso:**
 ```json
 {
-  "gameId": 123, "status": "running", "phraseLength": 42,
-  "spaces": [8, 14, 26, 35], "revealed": [0, 15, 16, 17],
-  "revealedLetters": { "0": "B", "15": "T", "16": "H", "17": "E" },
-  "hasUsedVowel": true, "timeLeft": 45230
+  "gameId": 123,
+  "status": "running",
+  "phraseLength": 42,
+  "spaces": [8, 14, 26, 35],
+  "revealed": [0, 15, 16, 17],
+  "revealedLetters": {
+    "0": "B",
+    "15": "T", 
+    "16": "H",
+    "17": "E"
+  },
+  "hasUsedVowel": true,
+  "timeLeft": 45230,
+  "coins": 85
 }
 ```
 
-**Response (Terminata):** Aggiunge `"phrase": "testo completo"`
+**Response 200 - Partita Terminata:**
+```json
+{
+  "gameId": 123,
+  "status": "won",
+  "phraseLength": 42,
+  "spaces": [8, 14, 26, 35],
+  "revealed": [0, 2, 4, 8, 15, 16, 17, 22, 24, 28, 35],
+  "revealedLetters": {},
+  "hasUsedVowel": true,
+  "timeLeft": 0,
+  "coins": 195,
+  "phrase": "be kind to yourself every single day"
+}
+```
 
-**Validazione:** Controllo ownership partita, gestione timeout automatico
-**Errori:** 403 (non proprietario), 404 (non trovata), 409 (scaduta)
+**Comportamenti Automatici:**
+- **Timeout automatico:** Se `timeLeft ≤ 0`, applica status "timeout" e penalità -20 monete
+- **Frase nascosta:** Campo `phrase` presente solo se status ≠ "running" (sicurezza anti-cheat)
+- **revealedLetters:** Mappa vuota se partita terminata (ottimizzazione)
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid game id"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Forbidden"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Game not found"
+}
+```
+
+**Response 409 - Conflict:**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "be kind to yourself every single day"
+}
+```
 
 ---
 
-### `POST /api/games/:id/guess-letter` — Tenta Lettera
-**Request:**
-```json
-{ "letter": "A" }
-```
+### `POST /api/games/:id/guess-letter` — Tenta Lettera Singola
+Acquista e tenta una lettera specifica nella partita corrente.
 
-**Response (Hit):**
+**Endpoint:** `POST /api/games/:id/guess-letter`  
+**Auth:** Cookie di sessione richiesto  
+**Content-Type:** `application/json`  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita
+
+**Request Body:**
 ```json
 {
-  "revealedIndexes": [5, 12, 28], "revealed": [0, 5, 12, 15, 16, 17, 28],
-  "revealedLetters": { "0": "B", "5": "A", "12": "A", "15": "T", "16": "H", "17": "E", "28": "A" },
-  "costApplied": 10, "coins": 85, "hasUsedVowel": true, "timeLeft": 43100
+  "letter": "A"
 }
 ```
 
-**Validazione:**
-- Letter: singolo carattere A-Z
-- Controllo lettera già utilizzata (gratuita se già tentata)
-- Limite vocali (max 1 per partita)
-- Saldo monete sufficiente
+**Request Schema:**
+- `letter` (string, required): Singolo carattere A-Z (case insensitive)
 
-**Comportamenti speciali:**
-- Lettera già usata: `costApplied: 0`
-- Monete insufficienti: addebita tutto il saldo residuo
-- Miss: costo raddoppiato
+**Response 200 - Lettera Trovata (Hit):**
+```json
+{
+  "revealedIndexes": [5, 12, 28],
+  "revealed": [0, 5, 12, 15, 16, 17, 28],
+  "revealedLetters": {
+    "0": "B",
+    "5": "A", 
+    "12": "A",
+    "15": "T",
+    "16": "H", 
+    "17": "E",
+    "28": "A"
+  },
+  "costApplied": 10,
+  "coins": 85,
+  "hasUsedVowel": true,
+  "timeLeft": 43100
+}
+```
 
-**Errori:** 400 (lettera non valida/vocale extra), 409 (partita non attiva)
+**Response 200 - Lettera Non Trovata (Miss):**
+```json
+{
+  "revealedIndexes": [],
+  "revealed": [0, 15, 16, 17],
+  "revealedLetters": {
+    "0": "B",
+    "15": "T",
+    "16": "H", 
+    "17": "E"
+  },
+  "costApplied": 20,
+  "coins": 65,
+  "hasUsedVowel": true,
+  "timeLeft": 41800
+}
+```
+
+**Response 200 - Lettera Già Utilizzata:**
+```json
+{
+  "revealedIndexes": [],
+  "revealed": [0, 15, 16, 17],
+  "revealedLetters": {
+    "0": "B",
+    "15": "T",
+    "16": "H",
+    "17": "E"
+  },
+  "costApplied": 0,
+  "coins": 85,
+  "hasUsedVowel": true,
+  "timeLeft": 43100
+}
+```
+
+**Response Schema:**
+- `revealedIndexes` (array): Nuove posizioni rivelate da questa lettera
+- `revealed` (array): Tutte le posizioni rivelate fino ad ora
+- `revealedLetters` (object): Mappa completa posizione → lettera rivelata
+- `costApplied` (number): Monete effettivamente spese per questo tentativo
+- `coins` (number): Saldo monete aggiornato dell'utente
+- `hasUsedVowel` (boolean): Flag aggiornato uso vocale
+- `timeLeft` (number): Millisecondi rimanenti
+
+**Logica Costi Applicata:**
+- **Lettera nuova presente:** Costo base (1-10 monete)
+- **Lettera nuova assente:** Costo base × 2 (penalità miss)
+- **Lettera già usata:** Costo 0 (nessun addebito)
+- **Monete insufficienti:** Addebita tutto il saldo residuo
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "🚫 Carattere mancante! Inserisci una lettera valida (A-Z) 📝"
+}
+```
+```json
+{
+  "error": "⚠️ Inserisci solo un carattere alla volta! 📝"
+}
+```
+```json
+{
+  "error": "🚫 Carattere non valido! Usa solo lettere A-Z 🔤"
+}
+```
+```json
+{
+  "error": "Solo una vocale per partita"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Forbidden"
+}
+```
+```json
+{
+  "error": "No coins left for letters"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Game not found"
+}
+```
+
+**Response 409 - Conflict:**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "be kind to yourself every single day"
+}
+```
+```json
+{
+  "error": "Game already ended (won)"
+}
+```
 
 ---
 
-### `POST /api/games/:id/guess-phrase` — Tenta Frase
-**Request:**
-```json
-{ "attempt": "be kind to yourself every single day" }
-```
+### `POST /api/games/:id/guess-phrase` — Tenta Frase Completa
+Tenta di indovinare l'intera frase per vincere immediatamente la partita.
 
-**Response (Vittoria):**
+**Endpoint:** `POST /api/games/:id/guess-phrase`  
+**Auth:** Cookie di sessione richiesto  
+**Content-Type:** `application/json`  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita
+
+**Request Body:**
 ```json
 {
-  "result": "win", "status": "won", "coinsDelta": 100,
-  "phrase": "be kind to yourself every single day", "coins": 195
+  "attempt": "be kind to yourself every single day"
 }
 ```
 
-**Response (Errore):**
+**Request Schema:**
+- `attempt` (string, required): Tentativo frase completa, 1-100 caratteri
+
+**Response 200 - Frase Corretta (Vittoria):**
 ```json
 {
-  "result": "wrong", "status": "running",
-  "message": "Tentativo non corretto", "timeLeft": 35600, "coins": 85
+  "result": "win",
+  "status": "won", 
+  "coinsDelta": 100,
+  "phrase": "be kind to yourself every single day",
+  "coins": 195
 }
 ```
 
-**Validazione:**
-- Attempt: stringa non vuota, max 100 caratteri
-- Controllo case-insensitive
-- Nessuna penalità per tentativi errati
+**Response 200 - Frase Errata:**
+```json
+{
+  "result": "wrong",
+  "status": "running",
+  "message": "Not the correct phrase", 
+  "timeLeft": 35600,
+  "coins": 85
+}
+```
+
+**Response Schema (Vittoria):**
+- `result` (string): "win" per vittoria
+- `status` (string): "won" stato finale partita
+- `coinsDelta` (number): Monete guadagnate (+100)
+- `phrase` (string): Frase completa rivelata
+- `coins` (number): Saldo finale aggiornato
+
+**Response Schema (Errore):**
+- `result` (string): "wrong" per tentativo errato
+- `status` (string): "running" partita continua
+- `message` (string): Messaggio descrittivo
+- `timeLeft` (number): Millisecondi rimanenti
+- `coins` (number): Saldo attuale (nessuna penalità)
+
+**Comportamento:**
+- **Confronto case-insensitive:** "Hello World" = "hello world"
+- **Nessuna penalità:** Tentativi errati non costano monete
+- **Vittoria immediata:** +100 monete e status "won"
+- **Partita continua:** Se sbagliato, permette altri tentativi
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid input"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Forbidden"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Game not found"
+}
+```
+
+**Response 409 - Conflict:**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "be kind to yourself every single day"
+}
+```
+```json
+{
+  "error": "Game already ended (won)"
+}
+```
 
 ---
 
-### `POST /api/games/:id/abandon` — Abbandona
-**Response:**
+### `POST /api/games/:id/abandon` — Abbandona Partita
+Termina volontariamente la partita corrente senza penalità monetarie.
+
+**Endpoint:** `POST /api/games/:id/abandon`  
+**Auth:** Cookie di sessione richiesto  
+**Content-Type:** `application/json`  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita  
+**Body:** Nessuno
+
+**Response 200 - Abbandono Confermato:**
 ```json
-{ "status": "abandoned", "phrase": "testo completo" }
+{
+  "status": "abandoned",
+  "phrase": "be kind to yourself every single day"
+}
 ```
 
-**Validazione:** Controllo stato partita attiva
+**Response 200 - Partita Già Terminata:**
+```json
+{
+  "status": "won",
+  "phrase": "be kind to yourself every single day"
+}
+```
+
+**Response Schema:**
+- `status` (string): Stato finale partita ("abandoned", "won", "timeout")
+- `phrase` (string): Frase completa rivelata
+
+**Comportamento:**
+- **Nessuna penalità:** Abbandono volontario non costa monete
+- **Stato finale:** Partita impostata su "abandoned"
+- **Frase rivelata:** Mostra soluzione completa
+- **Idempotente:** Chiamate multiple su partita già terminata restituiscono stato attuale
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid game id"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Forbidden"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Game not found"
+}
+```
 
 ---
 
 ## 🕹️ Partite — Modalità Ospite (`/api/guest/games`)
 
-> **Caratteristiche:**
-> - Accesso solo se NON autenticati | Lettere gratuite | Nessun limite vocali
-> - Timer identico (60s) | Pool frasi dedicato (3 semplificate)
+> **Caratteristiche Modalità Guest:**
+> - **Accesso:** Solo utenti NON autenticati (redirect se logged in)
+> - **Costi:** Tutte le lettere gratuite, nessuna limitazione vocali
+> - **Timer:** Identico modalità auth (60 secondi)
+> - **Pool frasi:** 3 frasi semplificate dedicate agli ospiti
+> - **Premi:** Nessun guadagno monetario (solo soddisfazione personale)
+
+---
 
 ### `POST /api/guest/games` — Crea Partita Ospite
-**Response 201:**
+Crea una nuova partita gratuita per utenti non registrati.
+
+**Endpoint:** `POST /api/guest/games`  
+**Auth:** Nessuna (utente deve essere NON autenticato)  
+**Content-Type:** `application/json`  
+**Body:** Nessuno
+
+**Prerequisiti:**
+- Utente NON deve essere autenticato
+- Pool frasi guest disponibili
+
+**Response 201 - Created:**
 ```json
 {
-  "gameId": 456, "status": "running", "phraseLength": 35,
-  "spaces": [5, 9, 15, 27], "revealed": [], "timeLeft": 60000
+  "gameId": 456,
+  "status": "running",
+  "phraseLength": 35,
+  "spaces": [5, 9, 15, 27],
+  "revealed": [],
+  "timeLeft": 60000
 }
 ```
 
-### `GET /api/guest/games/:id` — Stato Partita Ospite
-**Response:**
+**Response Schema:**
+- `gameId` (number): ID univoco partita guest
+- `status` (string): Stato partita, sempre "running" alla creazione
+- `phraseLength` (number): Lunghezza totale frase in caratteri
+- `spaces` (array): Indici posizioni spazi nella frase
+- `revealed` (array): Indici lettere rivelate (vuoto all'inizio)
+- `timeLeft` (number): Millisecondi rimanenti (60000 = 60s)
+
+**Campi Non Presenti (differenze da modalità auth):**
+- `coins`: Non applicabile per ospiti
+- `hasUsedVowel`: Nessun limite vocali per guest
+- `revealedLetters`: Semplificazione per guest
+
+**Response 403 - Forbidden:**
 ```json
 {
-  "gameId": 456, "status": "running", "phraseLength": 35,
-  "spaces": [5, 9, 15, 27], "revealed": [0, 2, 15, 22],
-  "revealedLetters": { "0": "E", "2": "E", "15": "C", "22": "G" },
+  "error": "Guest mode not available for authenticated users"
+}
+```
+
+---
+
+### `GET /api/guest/games/:id` — Stato Partita Ospite
+Recupera lo stato attuale di una partita guest specifica.
+
+**Endpoint:** `GET /api/guest/games/:id`  
+**Auth:** Nessuna (utente deve essere NON autenticato)  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita guest
+
+**Response 200 - Partita In Corso:**
+```json
+{
+  "gameId": 456,
+  "status": "running",
+  "phraseLength": 35,
+  "spaces": [5, 9, 15, 27],
+  "revealed": [0, 2, 15, 22],
+  "revealedLetters": {
+    "0": "E",
+    "2": "E", 
+    "15": "C",
+    "22": "G"
+  },
   "timeLeft": 42300
 }
 ```
 
-### `POST /api/guest/games/:id/guess-letter` — Tenta Lettera Ospite
-**Request:** `{ "letter": "E" }`
-
-**Response:**
+**Response 200 - Partita Terminata:**
 ```json
 {
-  "revealedIndexes": [0, 2, 26], "revealed": [0, 2, 15, 22, 26],
-  "revealedLetters": { "0": "E", "2": "E", "15": "C", "22": "G", "26": "E" },
-  "costApplied": 0, "timeLeft": 40800
+  "gameId": 456,
+  "status": "won",
+  "phraseLength": 35,
+  "spaces": [5, 9, 15, 27],
+  "revealed": [0, 2, 4, 5, 8, 15, 18, 22, 26, 28, 32],
+  "revealedLetters": {},
+  "timeLeft": 0,
+  "phrase": "every day is a new chance to grow"
 }
 ```
 
+**Comportamenti Automatici:**
+- **Timeout automatico:** Se `timeLeft ≤ 0`, applica status "timeout" (nessuna penalità)
+- **Frase nascosta:** Campo `phrase` presente solo se status ≠ "running"
+- **revealedLetters:** Mappa vuota se partita terminata
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid game id"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Guest mode not available for authenticated users"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Guest game not found"
+}
+```
+
+**Response 409 - Conflict:**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "every day is a new chance to grow"
+}
+```
+
+---
+
+### `POST /api/guest/games/:id/guess-letter` — Tenta Lettera Ospite
+Tenta una lettera specifica nella partita guest (sempre gratuito).
+
+**Endpoint:** `POST /api/guest/games/:id/guess-letter`  
+**Auth:** Nessuna (utente deve essere NON autenticato)  
+**Content-Type:** `application/json`  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita guest
+
+**Request Body:**
+```json
+{
+  "letter": "E"
+}
+```
+
+**Request Schema:**
+- `letter` (string, required): Singolo carattere A-Z (case insensitive)
+
+**Response 200 - Lettera Trovata:**
+```json
+{
+  "revealedIndexes": [0, 2, 26],
+  "revealed": [0, 2, 15, 22, 26],
+  "revealedLetters": {
+    "0": "E",
+    "2": "E", 
+    "15": "C",
+    "22": "G",
+    "26": "E"
+  },
+  "costApplied": 0,
+  "timeLeft": 40800
+}
+```
+
+**Response 200 - Lettera Non Trovata:**
+```json
+{
+  "revealedIndexes": [],
+  "revealed": [0, 2, 15, 22],
+  "revealedLetters": {
+    "0": "E",
+    "2": "E",
+    "15": "C", 
+    "22": "G"
+  },
+  "costApplied": 0,
+  "timeLeft": 39200
+}
+```
+
+**Response 200 - Lettera Già Utilizzata:**
+```json
+{
+  "revealedIndexes": [],
+  "revealed": [0, 2, 15, 22],
+  "revealedLetters": {
+    "0": "E",
+    "2": "E",
+    "15": "C",
+    "22": "G"
+  },
+  "costApplied": 0,
+  "timeLeft": 40800
+}
+```
+
+**Response Schema:**
+- `revealedIndexes` (array): Nuove posizioni rivelate da questa lettera
+- `revealed` (array): Tutte le posizioni rivelate fino ad ora
+- `revealedLetters` (object): Mappa completa posizione → lettera rivelata
+- `costApplied` (number): Sempre 0 per modalità guest
+- `timeLeft` (number): Millisecondi rimanenti
+
+**Caratteristiche Guest:**
+- **Sempre gratuito:** `costApplied` sempre 0
+- **Nessun limite vocali:** Possibili tentativi illimitati A,E,I,O,U
+- **Stessa validazione:** Controllo carattere A-Z identico a modalità auth
+- **Nessuna penalità miss:** Stesso costo per hit/miss
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "🚫 Carattere mancante! Inserisci una lettera valida (A-Z) 📝"
+}
+```
+```json
+{
+  "error": "⚠️ Inserisci solo un carattere alla volta! 📝"
+}
+```
+```json
+{
+  "error": "🚫 Carattere non valido! Usa solo lettere A-Z 🔤"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Guest mode not available for authenticated users"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Guest game not found"
+}
+```
+
+**Response 409 - Conflict:**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "every day is a new chance to grow"
+}
+```
+
+---
+
 ### `POST /api/guest/games/:id/guess-phrase` — Tenta Frase Ospite
-**Response (Vittoria):**
+Tenta di indovinare l'intera frase per completare la partita guest.
+
+**Endpoint:** `POST /api/guest/games/:id/guess-phrase`  
+**Auth:** Nessuna (utente deve essere NON autenticato)  
+**Content-Type:** `application/json`  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita guest
+
+**Request Body:**
 ```json
-{ "result": "win", "status": "won", "phrase": "every day is a new chance to grow" }
+{
+  "attempt": "every day is a new chance to grow"
+}
 ```
 
-### `POST /api/guest/games/:id/abandon` — Abbandona Ospite
-**Response:**
+**Request Schema:**
+- `attempt` (string, required): Tentativo frase completa, 1-100 caratteri
+
+**Response 200 - Frase Corretta (Vittoria):**
 ```json
-{ "status": "abandoned", "phrase": "every day is a new chance to grow" }
+{
+  "result": "win",
+  "status": "won",
+  "phrase": "every day is a new chance to grow"
+}
 ```
 
-**Validazione generale:** Controllo che utente non sia autenticato, validazione ID partita guest
+**Response 200 - Frase Errata:**
+```json
+{
+  "result": "wrong",
+  "status": "running",
+  "message": "Not the correct phrase",
+  "timeLeft": 35600
+}
+```
+
+**Response Schema (Vittoria):**
+- `result` (string): "win" per vittoria
+- `status` (string): "won" stato finale partita
+- `phrase` (string): Frase completa rivelata
+
+**Response Schema (Errore):**
+- `result` (string): "wrong" per tentativo errato
+- `status` (string): "running" partita continua
+- `message` (string): Messaggio descrittivo
+- `timeLeft` (number): Millisecondi rimanenti
+
+**Differenze da Modalità Auth:**
+- **Nessun guadagno monete:** Campo `coinsDelta` non presente
+- **Nessun costo:** Tentativi sempre gratuiti
+- **Stesso comportamento:** Logica vittoria/errore identica
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid input"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Guest mode not available for authenticated users"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Guest game not found"
+}
+```
+
+**Response 409 - Conflict:**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "every day is a new chance to grow"
+}
+```
+
+---
+
+### `POST /api/guest/games/:id/abandon` — Abbandona Partita Ospite
+Termina volontariamente la partita guest corrente.
+
+**Endpoint:** `POST /api/guest/games/:id/abandon`  
+**Auth:** Nessuna (utente deve essere NON autenticato)  
+**Content-Type:** `application/json`  
+**Path Parameters:**
+- `id` (number, required): ID univoco della partita guest  
+**Body:** Nessuno
+
+**Response 200 - Abbandono Confermato:**
+```json
+{
+  "status": "abandoned",
+  "phrase": "every day is a new chance to grow"
+}
+```
+
+**Response 200 - Partita Già Terminata:**
+```json
+{
+  "status": "won",
+  "phrase": "every day is a new chance to grow"
+}
+```
+
+**Response Schema:**
+- `status` (string): Stato finale partita ("abandoned", "won", "timeout")
+- `phrase` (string): Frase completa rivelata
+
+**Comportamento:**
+- **Nessuna penalità:** Modalità guest non ha sistema monetario
+- **Stato finale:** Partita impostata su "abandoned"
+- **Frase rivelata:** Mostra soluzione completa
+- **Idempotente:** Chiamate multiple restituiscono stato attuale
+
+**Response 400 - Bad Request:**
+```json
+{
+  "error": "Invalid game id"
+}
+```
+
+**Response 403 - Forbidden:**
+```json
+{
+  "error": "Guest mode not available for authenticated users"
+}
+```
+
+**Response 404 - Not Found:**
+```json
+{
+  "error": "Guest game not found"
+}
+```
 
 ---
 
 ## 🧩 Metadati & Utility
 
-### `GET /api/meta/letter-costs` — Costi Lettere
-Restituisce tabella completa costi per tutte le lettere.
+### `GET /api/meta/letter-costs` — Costi Lettere di Sistema
+Restituisce la tabella completa dei costi per tutte le lettere dell'alfabeto.
 
-**Response:**
+**Endpoint:** `GET /api/meta/letter-costs`  
+**Auth:** Non richiesta  
+**Query Parameters:** Nessuno
+
+**Response 200 - Success:**
 ```json
 {
   "letters": [
     { "letter": "A", "type": "vowel", "baseCost": 10 },
     { "letter": "B", "type": "consonant", "baseCost": 2 },
     { "letter": "C", "type": "consonant", "baseCost": 4 },
-    ...
+    { "letter": "D", "type": "consonant", "baseCost": 4 },
+    { "letter": "E", "type": "vowel", "baseCost": 10 },
+    { "letter": "F", "type": "consonant", "baseCost": 3 },
+    { "letter": "G", "type": "consonant", "baseCost": 2 },
+    { "letter": "H", "type": "consonant", "baseCost": 5 },
+    { "letter": "I", "type": "vowel", "baseCost": 10 },
+    { "letter": "J", "type": "consonant", "baseCost": 1 },
+    { "letter": "K", "type": "consonant", "baseCost": 1 },
+    { "letter": "L", "type": "consonant", "baseCost": 4 },
+    { "letter": "M", "type": "consonant", "baseCost": 3 },
+    { "letter": "N", "type": "consonant", "baseCost": 5 },
+    { "letter": "O", "type": "vowel", "baseCost": 10 },
+    { "letter": "P", "type": "consonant", "baseCost": 2 },
+    { "letter": "Q", "type": "consonant", "baseCost": 1 },
+    { "letter": "R", "type": "consonant", "baseCost": 4 },
+    { "letter": "S", "type": "consonant", "baseCost": 5 },
+    { "letter": "T", "type": "consonant", "baseCost": 5 },
+    { "letter": "U", "type": "vowel", "baseCost": 10 },
+    { "letter": "V", "type": "consonant", "baseCost": 2 },
+    { "letter": "W", "type": "consonant", "baseCost": 3 },
+    { "letter": "X", "type": "consonant", "baseCost": 1 },
+    { "letter": "Y", "type": "consonant", "baseCost": 3 },
     { "letter": "Z", "type": "consonant", "baseCost": 1 }
   ]
 }
 ```
-**Uso:** Visualizzazione costi nell'interfaccia utente
 
-### `GET /api/health` — Health Check
-Verifica disponibilità server.
+**Response Schema:**
+- `letters` (array): Lista completa lettere con metadati
+  - `letter` (string): Lettera maiuscola A-Z
+  - `type` (string): Tipo lettera ("vowel" o "consonant")
+  - `baseCost` (number): Costo base in monete
 
-**Response:** `{ "ok": true, "time": 1641024000000 }`
+**Utilizzo:**
+- **Frontend:** Visualizzazione costi nella tastiera virtuale
+- **Sviluppo:** Debug e testing sistema costi
+- **Documentazione:** Riferimento completo pricing
 
----
+**Logica Costi Ricorda:**
+- **Costo finale hit:** `baseCost` (se lettera presente)
+- **Costo finale miss:** `baseCost × 2` (se lettera assente)
+- **Modalità guest:** Sempre gratuito indipendentemente da `baseCost`
 
 # 🗄️ Database — Tabelle & Struttura
 
@@ -394,41 +1155,97 @@ Verifica disponibilità server.
 
 ## 📋 Schema Tabelle
 
-### `users` — Utenti Registrati
-**Campi principali:** `id`, `username` (univoco), `password_hash` (bcrypt), `coins` (≥0)  
-**Scopo:** Gestione utenti autenticati con sistema monete integrato  
-**Validazione:** Username univoco, password hash sicuro, saldo non negativo
+### `users` — Gestione Utenti Registrati
+**Scopo:** Gestisce gli account degli utenti autenticati con sistema monetario integrato per acquistare lettere durante le partite.
 
-### `phrases` — Frasi del Gioco
-**Campi principali:** `id`, `text` (30-50 caratteri), `mode` ('auth'/'guest')  
-**Contenuto:** 30 frasi motivazionali per modalità autenticata + 3 semplificate per ospiti  
-**Vincoli:** Solo lettere A-Z e spazi, lunghezza controllata
+**Struttura Completa:**
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT): Identificatore univoco dell'utente, chiave primaria auto-incrementale
+- `username` (TEXT UNIQUE NOT NULL): Nome utente univoco per login, utilizzato per l'autenticazione
+- `password_hash` (TEXT NOT NULL): Hash bcrypt della password utente (saltRounds=10), mai memorizzata in chiaro
+- `coins` (INTEGER NOT NULL DEFAULT 100 CHECK (coins >= 0)): Saldo monete per acquistare lettere, con vincolo non-negativo
 
-### `games` — Partite
-**Campi principali:** `id`, `userId` (FK users, NULL=guest), `phraseId` (FK phrases), `status`, `startedAt`, `expiresAt`, `hasUsedVowel`, `coinsSpent`, `coinsDelta`  
-**Timer:** 60 secondi automatici (`expiresAt = startedAt + 60000ms`)  
-**Monete:** Traccia spese partita e variazione finale (+100 vittoria, -20 timeout)
+**Validazioni e Vincoli:**
+- Username univoco tramite constraint UNIQUE per evitare duplicati
+- Saldo monete non può mai essere negativo (CHECK constraint)
+- Password sempre hashata con bcrypt per sicurezza
+- Valore di default 100 monete per nuovi utenti
 
-### `game_letters` — Lettere Tentate
-**Campi principali:** `id`, `gameId` (FK games), `letter` (A-Z), `wasHit` (0/1), `costApplied`, `createdAt`  
-**Protezione:** Constraint UNIQUE(gameId, letter) impedisce acquisti duplicati  
-**Audit:** Storia completa con costi effettivi e miss penalty applicati
+### `phrases` — Pool Frasi da Indovinare
+**Scopo:** Contiene tutte le frasi disponibili per il gioco, suddivise per modalità autenticata e guest con difficoltà differenziata.
+
+**Struttura Completa:**
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT): Identificatore univoco della frase, chiave primaria auto-incrementale
+- `text` (TEXT NOT NULL): Testo completo della frase da indovinare, solo lettere maiuscole e spazi
+- `mode` (TEXT NOT NULL CHECK (mode IN ('auth','guest'))): Modalità di gioco per cui la frase è destinata
+
+**Validazioni e Vincoli:**
+- Lunghezza frase obbligatoria tra 30 e 50 caratteri (CHECK constraint)
+- Mode limitato a 'auth' o 'guest' tramite CHECK constraint
+- Contenuto: 30 frasi motivazionali per utenti autenticati + 3 semplificate per ospiti
+- Frasi auth più complesse e varie, frasi guest più semplici e accessibili
+
+### `games` — Stato e Cronologia Partite
+**Scopo:** Traccia tutte le partite attive e completate, gestendo timer automatico, economia delle monete e stati di gioco per utenti registrati e ospiti.
+
+**Struttura Completa:**
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT): Identificatore univoco della partita, chiave primaria auto-incrementale
+- `userId` (INTEGER NULL, FK → users.id): Collegamento all'utente proprietario, NULL per partite guest
+- `phraseId` (INTEGER NOT NULL, FK → phrases.id): Riferimento alla frase da indovinare per questa partita
+- `status` (TEXT NOT NULL CHECK (status IN ('running','won','timeout','abandoned','ended'))): Stato corrente della partita
+  - `running`: Partita in corso, timer attivo
+  - `won`: Partita vinta dall'utente, +100 monete se auth
+  - `timeout`: Scaduto il timer (60s), -20 monete penalty se auth
+  - `abandoned`: Abbandonata volontariamente, nessuna penalty
+  - `ended`: Stato generico di chiusura
+- `startedAt` (INTEGER NOT NULL): Timestamp Unix (millisecondi) di inizio partita
+- `expiresAt` (INTEGER NOT NULL): Timestamp Unix (millisecondi) di scadenza automatica (startedAt + 60000ms)
+- `hasUsedVowel` (INTEGER NOT NULL DEFAULT 0 CHECK (hasUsedVowel IN (0,1))): Flag booleano uso vocale (0=no, 1=sì), limite 1 vocale per partita auth
+- `coinsSpent` (INTEGER NOT NULL DEFAULT 0): Totale monete spese per lettere durante questa partita
+- `coinsDelta` (INTEGER NOT NULL DEFAULT 0): Variazione finale saldo utente (+100 vittoria, -20 timeout, 0 abbandono)
+
+**Logica Timer e Economia:**
+- Timer fisso 60 secondi per tutte le partite
+- Sistema monetario solo per utenti autenticati (userId NOT NULL)
+- Partite guest (userId NULL) sempre gratuite
+- Controllo automatico scadenza quando `Date.now() > expiresAt`
+
+### `game_letters` — Audit Trail Lettere Tentate
+**Scopo:** Mantiene cronologia completa di ogni lettera tentata in ogni partita, con tracciamento costi applicati e risultati per audit e prevenzione duplicati.
+
+**Struttura Completa:**
+- `id` (INTEGER PRIMARY KEY AUTOINCREMENT): Identificatore univoco del tentativo lettera, chiave primaria auto-incrementale
+- `gameId` (INTEGER NOT NULL, FK → games.id): Riferimento alla partita di appartenenza
+- `letter` (TEXT NOT NULL CHECK (length(letter)=1 AND letter BETWEEN 'A' AND 'Z'))`: Lettera tentata, singolo carattere maiuscolo A-Z
+- `wasHit` (INTEGER NOT NULL CHECK (wasHit IN (0,1)))`: Risultato tentativo (0=miss, 1=hit), indica se la lettera era presente nella frase
+- `costApplied` (INTEGER NOT NULL)`: Monete effettivamente addebitate per questo tentativo (può essere 0 per duplicati o guest)
+
+**Protezioni e Validazioni:**
+- Constraint UNIQUE(gameId, letter) impedisce acquisti duplicati della stessa lettera
+- Validazione lettera singola maiuscola A-Z
+- wasHit booleano per tracking accurato hit/miss rate
+- costApplied traccia il costo effettivo (baseCost per hit, baseCost×2 per miss, 0 per duplicati/guest)
 
 ---
 
 ## 🔗 Relazioni Database
 
 ```
-users (1) ←→ (0..n) games         # Un utente può avere molte partite
-phrases (1) ←→ (0..n) games       # Una frase può essere usata in molte partite  
-games (1) ←→ (0..n) game_letters  # Una partita ha molte lettere tentate
+users (1) ←→ (0..n) games         # Un utente può avere molte partite (NULL per guest)
+phrases (1) ←→ (0..n) games       # Una frase può essere usata in molte partite simultanee  
+games (1) ←→ (0..n) game_letters  # Una partita traccia molte lettere tentate
 ```
 
+**Relazioni Dettagliate:**
+- **users → games**: Relazione 1:N con supporto guest (userId NULL), ON DELETE comportamento definito da business logic
+- **phrases → games**: Relazione 1:N permettendo riutilizzo frasi in partite multiple, distribuzione casuale
+- **games → game_letters**: Relazione 1:N con cascading per cronologia completa, vincolo univocità lettera/partita
+
 **Indici di Performance:**
-- `idx_users_username` — Ricerca utenti per login
-- `idx_phrases_mode` — Filtro frasi per modalità
-- `idx_games_userId` — Partite per utente specifico
-- `idx_game_letters_gameId` — Lettere per partita
+- `idx_users_username` — Ottimizza ricerca utenti durante login e autenticazione
+- `idx_phrases_mode` — Accelera filtro frasi per modalità ('auth'/'guest') nella selezione casuale
+- `idx_games_userId` — Migliora query cronologia partite per utente specifico  
+- `idx_games_phraseId` — Ottimizza analisi utilizzo frasi e statistiche
+- `idx_game_letters_gameId` — Accelera recupero lettere tentate per partita specifica
 
 ---
 
@@ -445,7 +1262,6 @@ session({
     httpOnly: true,      // Impedisce accesso JavaScript client-side
     sameSite: 'lax',     // Protezione CSRF
     secure: true,        // HTTPS obbligatorio in produzione
-    maxAge: 24*60*60*1000 // Scadenza 24h
   }
 })
 ```
@@ -464,35 +1280,59 @@ cors({
 
 ### Validazione Parametri API
 ```javascript
-// Login - validazione credenziali
+// Login - validazione credenziali (api/sessions.js)
 body('username')
-  .isLength({ min: 1, max: 50 })
-  .isAlphanumeric()
-  .withMessage('Username deve essere alfanumerico, max 50 caratteri'),
+  .isString()
+  .trim()
+  .isLength({ min: 1 })
+  .withMessage('username required'),
   
 body('password')
-  .isLength({ min: 8 })
-  .withMessage('Password minimo 8 caratteri')
+  .isString()
+  .isLength({ min: 1 })
+  .withMessage('password required')
 
-// Lettera - validazione formato
+// Lettera - validazione formato (api/games.js, api/guest.js)
 body('letter')
+  .isString()
   .isLength({ min: 1, max: 1 })
-  .isAlpha()
-  .toUpperCase()
-  .withMessage('Lettera deve essere singolo carattere A-Z')
+  .matches(/^[A-Za-z]$/)
+  .withMessage('Carattere non valido! Usa solo lettere A-Z')
 
-// Frase - validazione tentativo
+// Frase - validazione tentativo (api/games.js, api/guest.js)
 body('attempt')
+  .isString()
   .trim()
-  .isLength({ min: 1, max: 100 })
-  .withMessage('Tentativo frase non può essere vuoto, max 100 caratteri')
+  .isLength({ min: 1 })
+  .withMessage('Tentativo frase non può essere vuoto')
+
+// Parametri URL - validazione ID partita
+param('id')
+  .isInt({ min: 1 })
+  .withMessage('Game ID deve essere intero positivo')
 ```
 
-### Sanitizzazione Automatica
-- **Trim whitespace**: Rimozione spazi iniziali/finali
-- **Escape HTML**: Prevenzione XSS injection
-- **SQL injection**: Prepared statements obbligatori
-- **Case normalization**: Lettere automaticamente maiuscole
+### Gestione Errori Personalizzati
+Il codice implementa messaggi di errore specifici e user-friendly:
+
+```javascript
+// Validazione lettera con messaggi emoji (games.js, guest.js)
+if (req.body.letter === undefined || req.body.letter === null) {
+  return res.status(400).json({ 
+    error: '🚫 Carattere mancante! Inserisci una lettera valida (A-Z) 📝' 
+  });
+}
+if (typeof req.body.letter !== 'string' || req.body.letter.length !== 1) {
+  return res.status(400).json({ 
+    error: '⚠️ Inserisci solo un carattere alla volta! 📝' 
+  });
+}
+if (!/^[A-Za-z]$/.test(req.body.letter)) {
+  return res.status(400).json({ 
+    error: '🚫 Carattere non valido! Usa solo lettere A-Z 🔤' 
+  });
+}
+```
 
 ## Controlli Business Logic
 
@@ -517,35 +1357,61 @@ body('attempt')
 
 # 🚦 Gestione Errori & Codici HTTP
 
-> 📚 **Per informazioni complete su testing, metodologie e architettura del sistema di validazione:**  
+> 📚 **Per informazioni complete su testing e metodologie:**  
 > **[🧪 TESTING_GUIDE.md](tests/TESTING_GUIDE.md)** - Guida completa al sistema di testing
 
-## Mappatura Errori Standard
+## Mappatura Codici HTTP
 
-| **Codice** | **Significato** | **Quando si verifica** | **Esempio** |
-|------------|-----------------|------------------------|-------------|
+| **Codice** | **Significato** | **Quando** | **Esempio** |
+|------------|-----------------|------------|-------------|
 | **200** | Success | Operazione completata | Lettera trovata, frase indovinata |
 | **201** | Created | Risorsa creata | Nuova partita avviata |
-| **204** | No Content | Operazione senza body | Logout completato |
-| **400** | Bad Request | Input non valido | Lettera malformata, vocale extra |
-| **401** | Unauthorized | Autenticazione richiesta | Login necessario |
-| **403** | Forbidden | Accesso negato | Monete insufficienti, partita altrui |
-| **404** | Not Found | Risorsa inesistente | Partita non trovata |
-| **409** | Conflict | Stato inconsistente | Partita scaduta, già terminata |
-| **500** | Internal Error | Errore server | Database offline, bug codice |
+| **204** | No Content | Logout completato | Cookie rimosso |
+| **400** | Bad Request | Input non valido | "🚫 Carattere non valido A-Z 🔤" |
+| **401** | Unauthorized | Login richiesto | "Not authenticated" |
+| **403** | Forbidden | Accesso negato | "💸 Monete insufficienti! 🎮" |
+| **404** | Not Found | Risorsa inesistente | "Game not found" |
+| **409** | Conflict | Stato inconsistente | "Game already ended (timeout)" |
+| **500** | Internal Error | Errore server | "Internal Server Error" |
 
-## Formato Errori JSON
+## Formato Risposte di Errore
+
+### **Standard:**
 ```json
-{ "error": "Descrizione user-friendly del problema" }
+{ "error": "Descrizione user-friendly" }
 ```
 
-## Logging Errori Colorato (Sviluppo)
-```javascript
-// Errori loggati con colori per visibilità immediata
-console.log(`\x1b[31m[ERROR 400] Bad Request - Input non valido: "Lettera non valida"\x1b[0m`);
+### **Enhanced (409 Conflict):**
+```json
+{
+  "error": "Game already ended (timeout)",
+  "status": "timeout",
+  "phrase": "frase completa"
+}
 ```
 
----
+## Esempi Errori Comuni
+
+### **400 - Validazione Input:**
+```json
+{ "error": "🚫 Carattere mancante! Inserisci A-Z 📝" }
+{ "error": "Solo una vocale per partita" }
+{ "error": "Invalid game id" }
+```
+
+### **403 - Accesso Negato:**
+```json
+{ "error": "💸 Non hai abbastanza monete!" }
+{ "error": "Guest mode not available for authenticated users" }
+{ "error": "Forbidden" }
+```
+
+### **409 - Partita Terminata:**
+```json
+{ "error": "Game already ended (won)" }
+{ "error": "Game already ended (abandoned)" }
+```
+
 
 # 🧪 Dati di Test & Seed
 
@@ -593,7 +1459,7 @@ Il database viene inizializzato con partite di esempio per l'utente `player`:
   "scripts": {
     "dev": "nodemon index.mjs",           // Sviluppo con auto-restart
     "initdb": "node ./scripts/initdb.mjs", // Inizializzazione database
-    "test": "echo \"No test specified\""   // Placeholder per test
+    "test": "echo \"Error: no test specified\" && exit 1"   // Placeholder per test
   }
 }
 ```
@@ -624,16 +1490,6 @@ Creating sample games for "player"...
 Done. DB ready at db/aw1.db
 ```
 
-## Configurazione Nodemon
-```json
-{
-  "watch": ["**/*.js", "**/*.mjs"],
-  "ext": "js,mjs,json",
-  "ignore": ["node_modules/**", "db/aw1.db"],
-  "env": { "NODE_ENV": "development" }
-}
-```
-
 ---
 
 # 📡 Architettura & Deployment
@@ -655,17 +1511,6 @@ Done. DB ready at db/aw1.db
                                └─────────────┘
 ```
 
-## Comunicazione Client-Server
-```javascript
-// Client side (fetch con credentials)
-const response = await fetch('http://localhost:3001/api/games', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',  // Include cookie sessione
-  body: JSON.stringify(data)
-});
-```
-
 ## Flow Autenticazione Completo
 ```
 1. Client → POST /api/sessions (username, password)
@@ -678,35 +1523,6 @@ const response = await fetch('http://localhost:3001/api/games', {
 8. Server → Autorizza operazioni per utente
 ```
 
----
-
-# 🎯 Best Practices & Convenzioni
-
-## Stile Codice
-- **ES6+ moderno**: import/export, async/await, arrow functions
-- **Naming consistente**: camelCase per variabili, PascalCase per classi
-- **Commenti JSDoc**: Documentazione funzioni con parametri e return
-- **Error-first**: Gestione errori prima della logica principale
-
-## Database
-- **Foreign Keys**: Sempre abilitate per integrità referenziale
-- **Transazioni**: Per operazioni multiple o monete
-- **Indici strategici**: Su colonne utilizzate in WHERE e JOIN
-- **Naming convention**: snake_case per colonne, camelCase per JS
-
-## Sicurezza
-- **Input validation**: Sempre server-side con express-validator  
-- **SQL injection**: Prepared statements obbligatori
-- **XSS protection**: Sanitizzazione automatica
-- **CSRF tokens**: SameSite cookie protection
-
-## Monitoraggio
-- **Logging strutturato**: Morgan per richieste, console per errori
-- **Error boundaries**: Catch globali per prevenire crash
-- **Health checks**: Endpoint `/api/health` per monitoring
-- **Performance**: Query efficienti con indici appropriati
-
----
 
 ## Testing
 La cartella `tests/` contiene:

@@ -280,9 +280,9 @@ router.post('/:id/guess-letter',
         await run('UPDATE users SET coins = coins - ? WHERE id = ?', [actualCost, req.user.id]);
         // logga il tentativo con il costo effettivamente applicato
         await run(
-          `INSERT INTO game_letters(gameId, letter, wasHit, costApplied, createdAt)
-           VALUES (?, ?, ?, ?, ?)`,
-          [gameId, letter, hit ? 1 : 0, actualCost, nowMs()]
+          `INSERT INTO game_letters(gameId, letter, wasHit, costApplied)
+           VALUES (?, ?, ?, ?)`,
+          [gameId, letter, hit ? 1 : 0, actualCost]
         );
         // aggiorna contatore spesa nella partita (informativo)
         await run('UPDATE games SET coinsSpent = coinsSpent + ? WHERE id = ?', [actualCost, gameId]);

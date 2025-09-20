@@ -90,10 +90,9 @@ Il database viene inizializzato con utenti predefiniti per testing:
 - **Frasi:** Pool dedicato (3 frasi specifiche)
 
 ---
-
 ## 🏗️ Architettura del Sistema
 
-### Pattern "Dual Server" - Separazione Frontend/Backend
+### Pattern "Dual Server" (Separazione Frontend/Backend)
 
 Il progetto adotta un'architettura a **due server separati e indipendenti**:
 
@@ -159,16 +158,6 @@ Il progetto adotta un'architettura a **due server separati e indipendenti**:
 - **`phrases`** - Frasi del gioco (modalità auth/guest)
 - **`games`** - Partite con stato, timer, costi/guadagni
 - **`game_letters`** - Tracking lettere tentate per partita
-
----
-
-## 🛡️ Sicurezza Implementata
-
-- **Autenticazione:** Cookie HTTP-only con sessioni Express
-- **Password:** Hash bcrypt con salt automatico
-- **Validazione:** Input sanitization server-side
-- **Segregazione:** Utenti possono accedere solo ai propri dati
-- **Rate limiting:** Protezione API da abuse
 
 ---
 

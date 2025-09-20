@@ -1,5 +1,4 @@
 {
-  "_comment": "CONFIGURAZIONE CLIENT: package.json - Definisce dipendenze, script e metadata per applicazione React frontend. Gestisce React 19, React Router 7, Vite 6 per build/dev server, ESLint per code quality. Scripts: 'dev' per sviluppo, 'build' per produzione, 'lint' per validazione codice.",
   "name": "client",
   "private": true,
   "version": "0.0.0",

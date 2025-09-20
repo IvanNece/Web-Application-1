@@ -1,64 +1,77 @@
 /*
- * ========================================
- * SERVER PRINCIPALE - INDOVINA LA FRASE
- * ======// Router per modalità guest (partite senza autenticazione)
-app.use('/api/guest', guestRouter);
-// Metadati di sistema (costi lettere, configurazioni)
-app.use('/api/meta', metaRouter);
-
-// ==========================================
-// MIDDLEWARE DI GESTIONE ERRORI
-// ==========================================
-// Gestione centralizzata degli errori per prevenire leak di stack trace
+ * =======================================
+ * SERVER PRINCIPALE - INDOVINA LA FR// Configurazione CORS per architettura "due// Gestore globale degli errori non catturati
+// Previene il leak di informazioni sensibili nascondendo stack trace in produzione
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Handler per endpoint non trovati - restituisce JSON consistente
+// Handler per endpoint non esistenti
+// Restituisce sempre JSON consistente invece di HTML di default di Express
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
-// ==========================================
-// AVVIO SERVER
-// ==========================================
+// Avvio del server HTTP sulla porta configurata
+// Ascolta su tutte le interfacce di rete disponibili
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server AW1 attivo su http://localhost:${PORT}`);
-});================
+});rmette al client React (porta 5173) di comunicare con questo server (porta 3001)
+// credentials: true è essenziale per l'invio automatico dei cookie di sessione
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true, // consente invio/lettura cookie dal client
+})); * ========================================
  * 
  * Entry point dell'applicazione Express per il gioco "Indovina la Frase"
  * Configura middleware, routing, autenticazione e sessioni
  * Gestisce CORS per comunicazione con client React
  */
 
+// Framework web principale per creare server HTTP e gestire routing
 import express from 'express';
+// Middleware per gestire Cross-Origin Resource Sharing tra client e server
 import cors from 'cors';
+// Logger HTTP per monitorare richieste in entrata durante sviluppo
 import morgan from 'morgan';
+// Gestore sessioni utente basate su cookie per mantenere stato autenticazione
 import session from 'express-session';
+// Framework di autenticazione modulare e flessibile
 import passport from 'passport';
+// Configurazione strategia di autenticazione locale (username/password)
 import './auth/passport.js';          
+// Router per gestione sessioni: login, logout, verifica stato
 import sessionsRouter from './api/sessions.js';
+// Router per partite utenti autenticati con sistema monete
 import gamesRouter from './api/games.js';
+// Router per partite modalità ospite (senza autenticazione)
 import guestRouter from './api/guest.js';
+// Router per metadati di sistema come costi lettere
 import metaRouter from './api/meta.js';
 
 // ==========================================
 // INIZIALIZZAZIONE EXPRESS APP
 // ==========================================
+// Crea istanza principale dell'applicazione Express
+// Questa sarà la base per tutti i middleware e routing
 const app = express();
 
 // ==========================================
 // MIDDLEWARE DI LOGGING
 // ==========================================
-// Morgan per logging HTTP request standard
+// Morgan in modalità 'dev' stampa richieste HTTP con colori per debugging
+// Formato: METHOD url STATUS response-time - content-length
 app.use(morgan('dev'));
 
-// Middleware personalizzato per logging errori con descrizioni colorate
+// Middleware personalizzato per intercettare e loggare errori HTTP con colori
+// Override del metodo res.json per catturare errori e stamparli in rosso
 app.use((req, res, next) => {
+  // Salva riferimenti ai metodi originali prima di sovrascriverli
   const originalSend = res.send;
   const originalJson = res.json;
   
-  // Mappa codici di stato HTTP a descrizioni user-friendly
+  // Dizionario che mappa codici di stato HTTP a descrizioni comprensibili
+  // Utilizzato per migliorare il debugging durante sviluppo
   const statusDescriptions = {
     400: 'Bad Request - Input non valido',
     401: 'Unauthorized - Autenticazione richiesta', 
@@ -87,7 +100,8 @@ app.use((req, res, next) => {
 // ==========================================
 // MIDDLEWARE DI PARSING
 // ==========================================
-// Parser per JSON body nelle richieste POST/PUT
+// Abilita il parsing automatico di richieste con Content-Type: application/json
+// Rende disponibile req.body come oggetto JavaScript nelle route
 app.use(express.json());
 
 // 3) CORS per pattern “due server” (client Vite su 5173)
@@ -96,33 +110,38 @@ app.use(cors({
   credentials: true, // consente invio/lettura cookie dal client
 }));
 
-// 4) Sessione con cookie (requisito: Passport + cookie di sessione)
+// Configurazione sessioni basate su cookie per mantenere stato autenticazione
+// Essenziale per il funzionamento di Passport.js
 app.use(session({
   name: 'aw1.sid',   // nome del cookie personalizzato
-  secret: 'aw1-dev-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
+  secret: 'aw1-dev-secret-change-me', // chiave per firmare i cookie (cambiare in produzione)
+  resave: false, // non salvare sessioni non modificate
+  saveUninitialized: false, // non salvare sessioni vuote
   cookie: {
-    sameSite: 'lax',
-    secure: false, 
-    httpOnly: true
+    sameSite: 'lax', // protezione CSRF
+    secure: false, // false per HTTP in sviluppo, true per HTTPS in produzione
+    httpOnly: true // previene accesso JavaScript client-side per sicurezza
   }
 }));
 
-// 5) Passport (autenticazione)
+// Inizializzazione del sistema di autenticazione Passport.js
+// initialize() configura Passport per lavorare con Express
 app.use(passport.initialize());
+// session() integra Passport con le sessioni Express per persistenza autenticazione
 app.use(passport.session());
 
-// 6) Healthcheck (utile per testare che il server risponde)
+// Endpoint di healthcheck per verificare che il server sia operativo
+// Utilizzato per monitoring e test di connettività
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, time: Date.now() });
 });
 
-// 7) Router sessioni (per ora vuoto: lo riempiremo nello step Auth)
-app.use('/api/sessions', sessionsRouter);
-app.use('/api/games', gamesRouter);
-app.use('/api/guest', guestRouter);
-app.use('/api/meta', metaRouter);
+// Registrazione dei router per le diverse funzionalità dell'API
+// Ogni router gestisce un aspetto specifico dell'applicazione
+app.use('/api/sessions', sessionsRouter); // Login, logout, stato autenticazione
+app.use('/api/games', gamesRouter); // Partite per utenti autenticati
+app.use('/api/guest', guestRouter); // Partite per visitatori non registrati
+app.use('/api/meta', metaRouter); // Metadati come costi lettere
 
 // aiuta a non far trapelare stack trace
 app.use((err, req, res, next) => {

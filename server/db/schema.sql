@@ -72,7 +72,6 @@ CREATE TABLE game_letters (
   letter TEXT NOT NULL CHECK (length(letter)=1 AND letter BETWEEN 'A' AND 'Z'),  -- Lettera maiuscola
   wasHit INTEGER NOT NULL CHECK (wasHit IN (0,1)),    -- Flag lettera presente/assente
   costApplied INTEGER NOT NULL,            -- Costo applicato per questa lettera
-  createdAt INTEGER NOT NULL,              -- Timestamp tentativo
   FOREIGN KEY (gameId) REFERENCES games(id)  -- Collegamento partita
 );
 

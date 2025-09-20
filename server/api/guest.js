@@ -179,9 +179,9 @@ router.post('/games/:id/guess-letter',
       const hit = game.phraseText.toUpperCase().includes(letter) ? 1 : 0;
 
       await run(
-        `INSERT INTO game_letters(gameId, letter, wasHit, costApplied, createdAt)
-         VALUES (?, ?, ?, 0, ?)`,
-        [gameId, letter, hit, nowMs()]
+        `INSERT INTO game_letters(gameId, letter, wasHit, costApplied)
+         VALUES (?, ?, ?, 0)`,
+        [gameId, letter, hit]
       );
 
       const revealedIndexes = [];

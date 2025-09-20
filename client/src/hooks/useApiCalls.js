@@ -252,8 +252,32 @@ const useApiCalls = ({
           
           // Se tutte le lettere sono state rivelate: vittoria automatica
           if ((prev.revealed || []).length >= totalLetters && totalLetters > 0) {
-            showFeedback('success', '🎉 Complimenti!', 'Hai indovinato tutte le lettere!', false, false, 'won');
-            return {...prev, status: 'won'};
+            if (mode === 'authenticated') {
+              // Modalità autenticata: messaggio tradizionale
+              showFeedback('success', '🎉 Complimenti!', 'Hai indovinato tutte le lettere!', false, false, 'won');
+              return {...prev, status: 'won'};
+            } else {
+              // Modalità guest: stesso messaggio di quando si indovina direttamente la frase
+              // Ricostruisco la frase dalle lettere rivelate e dagli spazi
+              const revealedLetters = prev.revealedLetters || {};
+              const spaces = prev.spaces || [];
+              let reconstructedPhrase = '';
+              
+              for (let i = 0; i < (prev.phraseLength || 0); i++) {
+                if (spaces.includes(i)) {
+                  reconstructedPhrase += ' ';
+                } else if (revealedLetters[i]) {
+                  reconstructedPhrase += revealedLetters[i];
+                } else {
+                  // Questo caso non dovrebbe verificarsi se tutte le lettere sono rivelate
+                  reconstructedPhrase += '_';
+                }
+              }
+              
+              showFeedback('success', '🎉 Perfetto!', `Hai indovinato la frase: "${reconstructedPhrase}"`, false, false, 'won');
+              // Importante: aggiungo la frase ricostruita al gameState per PhraseDisplay
+              return {...prev, status: 'won', phrase: reconstructedPhrase};
+            }
           }
           
           return prev; // Mantieni stato corrente se non vittoria
